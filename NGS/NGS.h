@@ -35,6 +35,7 @@
 #define LAMP_EXTRABALL                      30
 #define LAMP_DROP_TARGET_SPECIAL            31
 #define LAMP_DROP_TARGET_5000               32
+
 #define LAMP_COLLECT_BONUS_LEFT             34
 #define LAMP_COLLECT_BONUS_RIGHT            35
 #define LAMP_TOP_ARROW_LEFT                 36
@@ -42,6 +43,7 @@
 #define LAMP_TOP_ARROW_RIGHT                38
 #define LAMP_DOUBLE_BONUS_TOP               39
 #define LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN  40
+#define LAMP_SHOOT_AGAIN                    40
 #define LAMP_HEAD_BIP                       41
 #define LAMP_DOUBLE_BONUS_BOTTOM            42
 #define LAMP_APRON_CREDIT                   43
@@ -69,14 +71,16 @@
 #define SW_                          2 //?
 #define SW_                          3 //?
 #define SW_RUBBER                    4 //?
+#define SW_CREDIT_RESET              5
 // Different definitions for Tilt so I can have the same
 // code for different architectures
 #define SW_TILT                      6 //?
 #define SW_PLUMB_TILT                6 //?
 #define SW_ROLL_TILT                 6 //?
 #define SW_OUTHOLE                   7 //?
-#define SW_COIN_1                    9 //?
-#define SW_COIN_2                   10 //?
+#define SW_COIN_1                    8 //?
+#define SW_COIN_2                    9 //?
+#define SW_COIN_3                   10 //?
 #define SW_SLAM                     15 //?
 #define SW_PLAYFIELD_TILT           15 //?
 
@@ -89,20 +93,20 @@
 #define SW_LEFT_INLANE              18
 #define SW_D_TARGET                 19
 #define SW_C_TARGET                 20
-#define SW_B_TARGET                 21
-#define SW_A_TARGET                 22
+#define SW_B_LANE                   21
+#define SW_A_LANE                   22
 #define SW_CENTER_SAUCER            23
 #define SW_SPINNER                  24
 
 #define SW_LEFT_SAUCER              31
 #define SW_RIGHT_OUTLANE            32
 #define SW_LEFT_OUTLANE             33
-#define SW_ADVANCE_LR_BONUS         34
+#define SW_TARGET_ADVANCE_LR_BONUS  34
 #define SW_BOTTOM_POP               35
 #define SW_RIGHT_SLING              36
 #define SW_LEFT_SLING               37
-#define SW_TOP_RIGHT_POP            38
-#define SW_TOP_LEFT_POP             39
+#define SW_RIGHT_POP                38
+#define SW_LEFT_POP                 39
 #endif
 
 // Coil Definitions
@@ -133,7 +137,7 @@ struct PlayfieldAndCabinetSwitch SolenoidAssociatedSwitches[] = {
   { SW_RIGHT_SLING, SOL_RIGHT_SLING, 4},
   { SW_LEFT_SLING, SOL_LEFT_SLING, 4},
   { SW_BOTTOM_POP, SOL_BOTTOM_POP_BUMPER, 4},
-  { SW_TOP_RIGHT_POP, SOL_RIGHT_POP_BUMPER, 4},
-  { SW_TOP_LEFT_POP, SOL_LEFT_POP_BUMPER, 4}
+  { SW_RIGHT_POP, SOL_RIGHT_POP_BUMPER, 4},
+  { SW_LEFT_POP, SOL_LEFT_POP_BUMPER, 4}
 };
 #endif
