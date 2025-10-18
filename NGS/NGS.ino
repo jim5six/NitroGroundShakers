@@ -84,8 +84,8 @@ boolean MachineStateChanged = true;
 
 
 #define SOUND_EFFECT_NONE                     0
-#define SOUND_EFFECT_BONUS_COUNT              1
-#define SOUND_EFFECT_BALL_OVER                19
+#define SOUND_EFFECT_BANG                     1
+#define SOUND_EFFECT_DRAGSTER_REV             2
 #define SOUND_EFFECT_GAME_OVER                20
 #define SOUND_EFFECT_TILT_WARNING             28
 #define SOUND_EFFECT_MATCH_SPIN               30
@@ -117,8 +117,8 @@ unsigned short SelfTestStateToCalloutMap[34] = {  134, 135, 133, 136, 137, 138, 
 #define SOUND_EFFECT_SELF_TEST_CPC_START              180
 #define SOUND_EFFECT_SELF_TEST_AUDIO_OPTIONS_START    190
 
-#define SOUND_EFFECT_BACKGROUND_SONG_1    500
-#define NUM_BACKGROUND_SONGS              10
+#define SOUND_EFFECT_BACKGROUND_SONG_1    10
+#define NUM_BACKGROUND_SONGS              1
 #define SOUND_EFFECT_BATTLE_SONG_1        525
 #define NUM_BATTLE_SONGS                  3
 
@@ -1257,7 +1257,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
           SoundSettingTimeout = CurrentTime+5000;
         } else if (curState==MACHINE_STATE_ADJUST_SFX_VOLUME) {
           if (SoundSettingTimeout) Audio.StopAllAudio();
-          Audio.PlaySound(SOUND_EFFECT_BONUS_COUNT, AUDIO_PLAY_TYPE_WAV_TRIGGER, curVal);
+          Audio.PlaySound(SOUND_EFFECT_BANG, AUDIO_PLAY_TYPE_WAV_TRIGGER, curVal);
           Audio.SetSoundFXVolume(curVal);
           SoundSettingTimeout = CurrentTime+5000;
         } else if (curState==MACHINE_STATE_ADJUST_CALLOUTS_VOLUME) {
@@ -1556,6 +1556,8 @@ byte LastSolPhase= 0;
 
 int RunAttractMode(int curState, boolean curStateChanged) {
 
+  ShowLampAnimation(0, 244, CurrentTime, 23, false, false);
+
   int returnState = curState;
 
   if (curStateChanged) {
@@ -1663,7 +1665,6 @@ int RunAttractMode(int curState, boolean curStateChanged) {
 
   return returnState;
 }
-
 
 
 
@@ -1872,7 +1873,7 @@ int InitNewBall(bool curStateChanged) {
     RPU_PushToTimedSolenoidStack(SOL_OUTHOLE, 16, CurrentTime + 1000);
     NumberOfBallsInPlay = 1;
 
-    PlayBackgroundSong(SOUND_EFFECT_BACKGROUND_SONG_1 + ((CurrentTime / 10) % NUM_BACKGROUND_SONGS));
+    PlayBackgroundSong(SOUND_EFFECT_BACKGROUND_SONG_1);
   }
 
   // We should only consider the ball initialized when
@@ -2172,7 +2173,7 @@ int CountdownBonus(boolean curStateChanged) {
 
       // Only give sound & score if this isn't a tilt
       if (NumTiltWarnings <= MaxTiltWarnings) {
-        PlaySoundEffect(SOUND_EFFECT_BONUS_COUNT);
+        PlaySoundEffect(SOUND_EFFECT_BANG);
         CurrentScores[CurrentPlayer] += 1000;        
       }
 
