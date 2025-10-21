@@ -215,7 +215,7 @@ AudioHandler Audio;
 
 *********************************************************************/
 
-enum SaucerArrowState {
+enum TopSaucerArrowState {
     LEFT_ARROW_SINGLE,
     RIGHT_ARROW_SINGLE,
     LEFT_ARROW_DOUBLE,
@@ -243,12 +243,14 @@ struct NGSBallState {
     boolean spinnerLit;
     boolean letterLit[LETTER_COUNT];
     boolean specialLit;
+    TopSaucerArrowState topArrowState;
 }
 
-struct NGSGameState {
+//struct NGSGameState {
+//    bool test;
+//}
 
-}
-
+//NGSGameState GameState;
 byte CurrentPlayer = 0;
 byte CurrentBallInPlay = 1;
 byte CurrentNumPlayers = 0;
@@ -279,6 +281,8 @@ unsigned long PlayfieldMultiplier;
 unsigned long LastTimeThroughLoop;
 unsigned long LastSwitchHitTime;
 unsigned long BallSaveEndTime;
+
+NGSBallState BallState;
 
 #define BALL_SAVE_GRACE_PERIOD  2000
 
@@ -500,13 +504,18 @@ void SetGeneralIlluminationOn(boolean setGIOn = true) {
   (void)setGIOn;
 }
 
-void ShowLockLamps() {
+void ShowTopArrowLamps() {
+    if (BallState.topArrowState == LEFT_ARROW_SINGLE || BallState.topArrowState == LEFT_ARROW_DOUBLE) {
+        RPU_SetLampState(LAMP_TOP_ARROW_LEFT, 1, 0, 0);
+    } else {
+        RPU_SetLampState(LAMP_TOP_ARROW_LEFT, 0, 0);
+    }
 
-}
-
-
-void ShowBonusLamps() {
-  
+    if (BallState.topArrowState == RIGHT_ARROW_SINGLE || BallState.topArrowState == RIGHT_ARROW_DOUBLE) {
+        RPU_SetLampState(LAMP_TOP_ARROW_RIGHT, 1, 0, 0);
+    } else {
+        RPU_SetLampState(LAMP_TOP_ARROW_RIGHT, 0, 0);
+    }
 }
 
 void ShowNitroBonusLamps() {
@@ -518,23 +527,7 @@ void ShowNitroBonusLamps() {
   RPU_SetLampState(LAMP_F, 1, 0, 0);
 }
 
-
-void ShowBonusXLamps() {
-}
-
-
-void ShowStandupLamps() {
-
-}
-
-void ShowDropTargetLamps() {
-
-
-}
-
-
 void ShowShootAgainLamps() {
-
   if ( (BallFirstSwitchHitTime==0 && BallSaveNumSeconds) || (BallSaveEndTime && CurrentTime<BallSaveEndTime) ) {
     unsigned long msRemaining = 5000;
     if (BallSaveEndTime!=0) msRemaining = BallSaveEndTime - CurrentTime;
@@ -544,6 +537,13 @@ void ShowShootAgainLamps() {
     RPU_SetLampState(LAMP_SHOOT_AGAIN, SamePlayerShootsAgain);
     RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, SamePlayerShootsAgain);
   }
+}
+
+// Top level function for managing all normal lamps during unstructured play
+void ShowPlayfieldLamps() {
+    ShowTopArrowLamps();
+    ShowNitroBonusLamps();
+    ShowShootAgainLamps();
 }
 
 /*
@@ -2028,6 +2028,7 @@ int ManageGameMode() {
 
   boolean specialAnimationRunning = false;
 
+  ShowPlayfieldLamps();
   UpdateDropTargets();
 
   if ((CurrentTime - LastSwitchHitTime) > 3000) TimersPaused = true;
@@ -2498,9 +2499,19 @@ int HandleSystemSwitches(int curState, byte switchHit) {
   return returnState;
 }
 
+ToggleTopSaucerArrow() {
+    if (BallState.topArrowState == LEFT_ARROW_SINGLE) {
+        BallState.topArrowState = RIGHT_ARROW_SINGLE;
+    } else if (BallState.topArrowState == RIGHT_ARROW_SINGLE) {
+        BallState.topArrowState = LEFT_ARROW_DOUBLE;
+    } else if (BallState.topArrowState == LEFT_ARROW_DOUBLE) {
+        BallState.topArrowState = RIGHT_ARROW_DOUBLE;
+    } else {
+        BallState.topArrowState = LEFT_ARROW_SINGLE;
+    }
+}
 
 void HandleDropTarget(byte switchHit) {
-
   byte result;
   unsigned long numTargetsDown = 0;
   result = DropTargets.HandleDropTargetHit(switchHit);
@@ -2518,14 +2529,13 @@ void HandleDropTarget(byte switchHit) {
   
 }
 
-
-
 void HandleGamePlaySwitches(byte switchHit) {
 
   switch (switchHit) {
   
     case SW_LEFT_SLING:
     case SW_RIGHT_SLING:
+      ToggleTopSaucerArrow();
       CurrentScores[CurrentPlayer] += 100;
       PlaySoundEffect(SOUND_EFFECT_SLING_SHOT);
       LastSwitchHitTime = CurrentTime;
@@ -2543,6 +2553,7 @@ void HandleGamePlaySwitches(byte switchHit) {
 
     case SW_LEFT_POP:
     case SW_RIGHT_POP:
+      ToggleTopSaucerArrow();
       CurrentScores[CurrentPlayer] += 100;
       PlaySoundEffect(SOUND_EFFECT_BANG);
       AddToBonus(1);
@@ -2551,6 +2562,7 @@ void HandleGamePlaySwitches(byte switchHit) {
       break;
     
     case SW_BOTTOM_POP:
+      ToggleTopSaucerArrow();
       CurrentScores[CurrentPlayer] += 100;
       PlaySoundEffect(SOUND_EFFECT_BANG);
       AddToBonus(1);
@@ -2559,6 +2571,7 @@ void HandleGamePlaySwitches(byte switchHit) {
       break;
 
     case SW_SPINNER:
+      ToggleTopSaucerArrow();
       CurrentScores[CurrentPlayer] += 100;
       PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
       LastSwitchHitTime = CurrentTime;
