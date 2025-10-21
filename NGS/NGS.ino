@@ -214,6 +214,41 @@ AudioHandler Audio;
     Game State
 
 *********************************************************************/
+
+enum SaucerArrowState {
+    LEFT_ARROW_SINGLE,
+    RIGHT_ARROW_SINGLE,
+    LEFT_ARROW_DOUBLE,
+    RIGHT_ARROW_DOUBLE
+}
+
+enum BonusLanes {
+    LEFT_BONUS_LANE,
+    RIGHT_BONUS_LANE,
+    BONUS_LANE_COUNT
+}
+
+enum PlayfieldLetters {
+    A = 0,
+    B,
+    C,
+    D,
+    E,
+    F,
+    LETTER_COUNT
+}
+struct NGSBallState {
+    unsigned long laneBonus[BONUS_LANE_COUNT];
+    boolean doubleBonus[BONUS_LANE_COUNT];
+    boolean spinnerLit;
+    boolean letterLit[LETTER_COUNT];
+    boolean specialLit;
+}
+
+struct NGSGameState {
+
+}
+
 byte CurrentPlayer = 0;
 byte CurrentBallInPlay = 1;
 byte CurrentNumPlayers = 0;
