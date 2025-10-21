@@ -215,33 +215,36 @@ enum TopSaucerArrowState
     RIGHT_ARROW_SINGLE,
     LEFT_ARROW_DOUBLE,
     RIGHT_ARROW_DOUBLE
-}
+};
 
 enum BonusLanes
 {
-    LEFT_BONUS_LANE,
-    RIGHT_BONUS_LANE,
+    BONUS_LANE_LEFT,
+    BONUS_LANE_RIGHT,
     BONUS_LANE_COUNT
-}
+};
 
 enum PlayfieldLetters
 {
-    A = 0,
-    B,
-    C,
-    D,
-    E,
-    F,
+    LETTER_A = 0,
+    LETTER_B,
+    LETTER_C,
+    LETTER_D,
+    LETTER_E,
+    LETTER_F,
     LETTER_COUNT
-} struct NGSBallState
+};
+
+struct NGSBallState
 {
     unsigned long laneBonus[BONUS_LANE_COUNT];
-    boolean doubleBonus[BONUS_LANE_COUNT];
+    boolean collectLit[BONUS_LANE_COUNT];
+    boolean doubleBonus;
     boolean spinnerLit;
     boolean letterLit[LETTER_COUNT];
     boolean specialLit;
     TopSaucerArrowState topArrowState;
-}
+};
 
 // struct NGSGameState {
 //     bool test;
@@ -257,7 +260,7 @@ byte GameMode = GAME_MODE_SKILL_SHOT;
 byte MaxTiltWarnings = 2;
 byte NumTiltWarnings = 0;
 byte CurrentAchievements[4];
-byte TargetBankComplete[4];
+byte SixLetterComplete[4];
 boolean SamePlayerShootsAgain = false;
 boolean BallSaveUsed = false;
 boolean ExtraBallCollected = false;
@@ -533,6 +536,10 @@ void SetGeneralIlluminationOn(boolean setGIOn = true)
     (void)setGIOn;
 }
 
+/*********************************
+ * Playfield and GameState Lighting
+ **********************************/
+
 void ShowTopArrowLamps()
 {
     if (BallState.topArrowState == LEFT_ARROW_SINGLE || BallState.topArrowState == LEFT_ARROW_DOUBLE)
@@ -554,14 +561,30 @@ void ShowTopArrowLamps()
     }
 }
 
+void ShowLeftSaucerLamps()
+{
+    RPU_SetLampState(LAMP_COLLECT_BONUS_LEFT, BallState.collectLit[BONUS_LANE_LEFT] ? 1 : 0, 0, 0);
+    RPU_SetLampState(LAMP_COLLECT_BONUS_RIGHT, BallState.collectLit[BONUS_LANE_RIGHT] ? 1 : 0, 0, 0);
+
+    // Add bonus light is only lit if neither collect is lit
+    if (!BallState.collectLit[BONUS_LANE_LEFT] && !BallState.collectLit[BONUS_LANE_RIGHT])
+    {
+        RPU_SetLampState(LAMP_ARROW_ADD_LR_BONUS, 1, 0, 0);
+    }
+    else
+    {
+        RPU_SetLampState(LAMP_ARROW_ADD_LR_BONUS, 0, 0, 0);
+    }
+}
+
 void ShowNitroBonusLamps()
 {
-    RPU_SetLampState(LAMP_A, 1, 0, 0);
-    RPU_SetLampState(LAMP_B, 1, 0, 0);
-    RPU_SetLampState(LAMP_C, 1, 0, 0);
-    RPU_SetLampState(LAMP_D, 1, 0, 0);
-    RPU_SetLampState(LAMP_E, 1, 0, 0);
-    RPU_SetLampState(LAMP_F, 1, 0, 0);
+    RPU_SetLampState(LAMP_A, BallState.letterLit[LETTER_A] ? 1 : 0, 0, 0);
+    RPU_SetLampState(LAMP_B, BallState.letterLit[LETTER_B] ? 1 : 0, 0, 0);
+    RPU_SetLampState(LAMP_C, BallState.letterLit[LETTER_C] ? 1 : 0, 0, 0);
+    RPU_SetLampState(LAMP_D, BallState.letterLit[LETTER_D] ? 1 : 0, 0, 0);
+    RPU_SetLampState(LAMP_E, BallState.letterLit[LETTER_E] ? 1 : 0, 0, 0);
+    RPU_SetLampState(LAMP_F, BallState.letterLit[LETTER_F] ? 1 : 0, 0, 0);
 }
 
 void ShowShootAgainLamps()
@@ -581,12 +604,31 @@ void ShowShootAgainLamps()
     }
 }
 
+void ShowBonusLamps() {
+  
+}
+
+void ShowBonusXLamps() {
+  
+}
+
+void ShowStandupLamps() {
+
+}
+
+void ShowDropTargetLamps() {
+
+}
+
 // Top level function for managing all normal lamps during unstructured play
 void ShowPlayfieldLamps()
 {
     ShowTopArrowLamps();
+    ShowLeftSaucerLamps();
     ShowNitroBonusLamps();
     ShowShootAgainLamps();
+
+    RPU_SetLampState(LAMP_BONUS_SPINNER, (BallState.spinnerLit ? 1 : 0), 0, 0);
 }
 
 /*
@@ -2024,7 +2066,7 @@ void TargetBank()
         RPU_SetLampState(LAMP_E, 0, 0, 0);
         RPU_SetLampState(LAMP_F, 0, 0, 0);
     }
-    if ((TargetBankComplete[CurrentPlayer] == 1))
+    if ((SixLetterComplete[CurrentPlayer] == 1))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 1, 0, 0);
         RPU_SetLampState(LAMP_A, 1, 0, 0);
@@ -2033,9 +2075,9 @@ void TargetBank()
         RPU_SetLampState(LAMP_D, 1, 0, 0);
         RPU_SetLampState(LAMP_E, 1, 0, 0);
         RPU_SetLampState(LAMP_F, 1, 0, 0);
-        TargetBankComplete[CurrentPlayer] += 1;
+        SixLetterComplete[CurrentPlayer] += 1;
     }
-    if (TargetBankComplete[CurrentPlayer] >= 2)
+    if (SixLetterComplete[CurrentPlayer] >= 2)
     {
         RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
         RPU_SetLampState(LAMP_A, 1, 0, 0);
@@ -2045,7 +2087,7 @@ void TargetBank()
         RPU_SetLampState(LAMP_E, 1, 0, 0);
         RPU_SetLampState(LAMP_F, 1, 0, 0);
     }
-    if (TargetBankComplete[CurrentPlayer] >= 3)
+    if (SixLetterComplete[CurrentPlayer] >= 3)
     {
         RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, 0);
         RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
@@ -2178,6 +2220,23 @@ int InitGamePlay(boolean curStateChanged)
     return MACHINE_STATE_INIT_NEW_BALL;
 }
 
+// Reset all the bonuses and lights that should be new for each ball
+void ResetBallState()
+{
+    BallState.laneBonus[BONUS_LANE_LEFT] = 1;
+    BallState.laneBonus[BONUS_LANE_RIGHT] = 1;
+    BallState.doubleBonus = false;
+    BallState.spinnerLit = false;
+
+    for (int i = 0; i < LETTER_COUNT; i++) 
+    {
+        BallState.letterLit[i] = true;
+    }
+
+    BallState.specialLit = false;
+    BallState.topArrowState = LEFT_ARROW_SINGLE;
+}
+
 int InitNewBall(bool curStateChanged)
 {
 
@@ -2222,11 +2281,11 @@ int InitNewBall(bool curStateChanged)
         BonusXAnimationStart = 0;
         for (int count = 0; count < 4; count++)
         {
-            TargetBankComplete[count] = 0;
+            SixLetterComplete[count] = 0;
         }
         BallSaveEndTime = 0;
 
-        ShowNitroBonusLamps();
+        ResetBallState();
 
         if (CurrentPlayer == 0)
         {
@@ -2879,7 +2938,7 @@ int HandleSystemSwitches(int curState, byte switchHit)
     return returnState;
 }
 
-ToggleTopSaucerArrow()
+void ToggleTopSaucerArrow()
 {
     if (BallState.topArrowState == LEFT_ARROW_SINGLE)
     {
@@ -2897,6 +2956,24 @@ ToggleTopSaucerArrow()
     {
         BallState.topArrowState = LEFT_ARROW_SINGLE;
     }
+}
+
+void CheckForCompleteABCDEF()
+{
+    if (!BallState.letterLit[LETTER_A] &&
+        !BallState.letterLit[LETTER_B] &&
+        !BallState.letterLit[LETTER_C] &&
+        !BallState.letterLit[LETTER_D] &&
+        !BallState.letterLit[LETTER_E] &&
+        !BallState.letterLit[LETTER_F])
+        {
+            SixLetterComplete[CurrentPlayer] += 1;
+
+            for (int i = 0; i < LETTER_COUNT; i++) 
+                {
+                    BallState.letterLit[i] = true;
+                }
+        }
 }
 
 void HandleDropTarget(byte switchHit)
@@ -2969,7 +3046,14 @@ void HandleGamePlaySwitches(byte switchHit)
 
     case SW_SPINNER:
         ToggleTopSaucerArrow();
-        CurrentScores[CurrentPlayer] += 100;
+        if (BallState.spinnerLit)
+        {
+            CurrentScores[CurrentPlayer] += 1000;
+        }
+        else
+        {
+            CurrentScores[CurrentPlayer] += 100;
+        }
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -2995,13 +3079,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_A_LANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        RPU_SetLampState(LAMP_A, 0, 0, 0);
-        if (!RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C) && !RPU_ReadLampState(LAMP_D) && !RPU_ReadLampState(LAMP_E) && !RPU_ReadLampState(LAMP_F))
-        {
-            TargetBankComplete[CurrentPlayer] += 1;
-        }
+        BallState.letterLit[LETTER_A] = false;
         AddToBonus(1);
-        RPU_SetLampState(LAMP_A, 0, 0, 0);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3010,13 +3089,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_B_LANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        RPU_SetLampState(LAMP_B, 0, 0, 0);
-        if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_C) && !RPU_ReadLampState(LAMP_D) && !RPU_ReadLampState(LAMP_E) && !RPU_ReadLampState(LAMP_F))
-        {
-            TargetBankComplete[CurrentPlayer] += 1;
-        }
+        BallState.letterLit[LETTER_B] = false;
         AddToBonus(1);
-        RPU_SetLampState(LAMP_B, 0, 0, 0);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3025,13 +3099,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_C_TARGET:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
-        RPU_SetLampState(LAMP_C, 0, 0, 0);
-        if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_D) && !RPU_ReadLampState(LAMP_E) && !RPU_ReadLampState(LAMP_F))
-        {
-            TargetBankComplete[CurrentPlayer] += 1;
-        }
+        BallState.letterLit[LETTER_C] = false;
         AddToBonus(1);
-        RPU_SetLampState(LAMP_C, 0, 0, 0);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3040,13 +3109,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_D_TARGET:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
-        RPU_SetLampState(LAMP_D, 0, 0, 0);
-        if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C) && !RPU_ReadLampState(LAMP_E) && !RPU_ReadLampState(LAMP_F))
-        {
-            TargetBankComplete[CurrentPlayer] += 1;
-        }
+        BallState.letterLit[LETTER_D] = false;
         AddToBonus(1);
-        RPU_SetLampState(LAMP_D, 0, 0, 0);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3055,13 +3119,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_RIGHT_INLANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        RPU_SetLampState(LAMP_E, 0, 0, 0);
-        if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C) && !RPU_ReadLampState(LAMP_D) && !RPU_ReadLampState(LAMP_F))
-        {
-            TargetBankComplete[CurrentPlayer] += 1;
-        }
+        BallState.letterLit[LETTER_F] = false;
         AddToBonus(1);
-        RPU_SetLampState(LAMP_E, 0, 0, 0);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3070,13 +3129,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_LEFT_INLANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        RPU_SetLampState(LAMP_F, 0, 0, 0);
-        if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C) && !RPU_ReadLampState(LAMP_D) && !RPU_ReadLampState(LAMP_E))
-        {
-            TargetBankComplete[CurrentPlayer] += 1;
-        }
+        BallState.letterLit[LETTER_E] = false;
         AddToBonus(1);
-        RPU_SetLampState(LAMP_F, 0, 0, 0);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3092,6 +3146,32 @@ void HandleGamePlaySwitches(byte switchHit)
 
     case SW_CENTER_SAUCER:
         CurrentScores[CurrentPlayer] += 1000;
+        BallState.spinnerLit = true;
+
+        switch (BallState.topArrowState)
+        {
+        case LEFT_ARROW_SINGLE:
+            BallState.collectLit[BONUS_LANE_LEFT] = true;
+            break;
+
+        case RIGHT_ARROW_SINGLE:
+            BallState.collectLit[BONUS_LANE_RIGHT] = true;
+            break;
+
+        case LEFT_ARROW_DOUBLE:
+            BallState.collectLit[BONUS_LANE_LEFT] = true;
+            BallState.doubleBonus = true;
+            break;
+
+        case RIGHT_ARROW_DOUBLE:
+            BallState.collectLit[BONUS_LANE_RIGHT] = true;
+            BallState.doubleBonus = true;
+            break;
+
+        default:
+            break;
+        }
+
         PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
         AddToBonus(3);
         RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 1000, true);
@@ -3118,6 +3198,8 @@ void HandleGamePlaySwitches(byte switchHit)
             BallFirstSwitchHitTime = CurrentTime;
         break;
     }
+
+    CheckForCompleteABCDEF();
 }
 
 int RunGamePlayMode(int curState, boolean curStateChanged)
