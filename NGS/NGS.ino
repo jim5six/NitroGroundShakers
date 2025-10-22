@@ -224,6 +224,7 @@ byte MaxTiltWarnings = 2;
 byte NumTiltWarnings = 0;
 byte CurrentAchievements[4];
 byte TargetBankComplete[4];
+byte DropTargetComplete = 0;
 boolean SamePlayerShootsAgain = false;
 boolean BallSaveUsed = false;
 boolean ExtraBallCollected = false;
@@ -465,41 +466,77 @@ void SetGeneralIlluminationOn(boolean setGIOn = true) {
   (void)setGIOn;
 }
 
-void ShowLockLamps() {
-
-}
-
-
 void ShowBonusLamps() {
   
 }
 
 void ShowNitroBonusLamps() {
-  RPU_SetLampState(LAMP_A, 1, 0, 0);
-  RPU_SetLampState(LAMP_B, 1, 0, 0);
-  RPU_SetLampState(LAMP_C, 1, 0, 0);
-  RPU_SetLampState(LAMP_D, 1, 0, 0);
-  RPU_SetLampState(LAMP_E, 1, 0, 0);
-  RPU_SetLampState(LAMP_F, 1, 0, 0);
+  if ((TargetBankComplete[CurrentPlayer] == 0)) {
+    RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
+    RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
+    RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
+    RPU_SetLampState(LAMP_A, 1, 0, 0);
+    RPU_SetLampState(LAMP_B, 1, 0, 0);
+    RPU_SetLampState(LAMP_C, 1, 0, 0);
+    RPU_SetLampState(LAMP_D, 1, 0, 0);
+    RPU_SetLampState(LAMP_E, 1, 0, 0);
+    RPU_SetLampState(LAMP_F, 1, 0, 0);
+  }
+  if ((TargetBankComplete[CurrentPlayer] == 1)) {
+    RPU_SetLampState(LAMP_SUPER_BONUS, 1, 0, 0);
+    RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
+    RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
+    RPU_SetLampState(LAMP_A, 1, 0, 0);
+    RPU_SetLampState(LAMP_B, 1, 0, 0);
+    RPU_SetLampState(LAMP_C, 1, 0, 0);
+    RPU_SetLampState(LAMP_D, 1, 0, 0);
+    RPU_SetLampState(LAMP_E, 1, 0, 0);
+    RPU_SetLampState(LAMP_F, 1, 0, 0);
+  }
+  if  (TargetBankComplete[CurrentPlayer] == 2) {
+    RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
+    RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
+    RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
+    RPU_SetLampState(LAMP_A, 1, 0, 0);
+    RPU_SetLampState(LAMP_B, 1, 0, 0);
+    RPU_SetLampState(LAMP_C, 1, 0, 0);
+    RPU_SetLampState(LAMP_D, 1, 0, 0);
+    RPU_SetLampState(LAMP_E, 1, 0, 0);
+    RPU_SetLampState(LAMP_F, 1, 0, 0);
+  }
+  if  (TargetBankComplete[CurrentPlayer] >= 3) {
+    RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
+    RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
+    RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, 0);
+    RPU_SetLampState(LAMP_A, 0, 0, 0);
+    RPU_SetLampState(LAMP_B, 0, 0, 0);
+    RPU_SetLampState(LAMP_C, 0, 0, 0);
+    RPU_SetLampState(LAMP_D, 0, 0, 0);
+    RPU_SetLampState(LAMP_E, 0, 0, 0);
+    RPU_SetLampState(LAMP_F, 0, 0, 0);
+  }
 }
-
 
 void ShowBonusXLamps() {
 }
 
-
 void ShowStandupLamps() {
-
 }
 
 void ShowDropTargetLamps() {
-
-
+  if (DropTargetComplete == 0) {
+    RPU_SetLampState(LAMP_DROP_TARGET_5000, 1, 0, 0);
+  }
+  if (DropTargetComplete == 1) {
+    RPU_SetLampState(LAMP_EXTRABALL, 1, 0, 0);
+  }
+  if (DropTargetComplete >= 2) {
+    RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 1, 0, 0);
+    RPU_SetLampState(LAMP_EXTRABALL, 0, 0, 0);    
+  }
 }
 
-
 void ShowShootAgainLamps() {
-
   if ( (BallFirstSwitchHitTime==0 && BallSaveNumSeconds) || (BallSaveEndTime && CurrentTime<BallSaveEndTime) ) {
     unsigned long msRemaining = 5000;
     if (BallSaveEndTime!=0) msRemaining = BallSaveEndTime - CurrentTime;
@@ -1589,7 +1626,6 @@ int RunAttractMode(int curState, boolean curStateChanged) {
     for (byte count = 0; count < 4; count++) {
 //      RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, 0);
     }
-
 //    RPU_SetLampState(LAMP_HEAD_1_PLAYER, 0);
 //    RPU_SetLampState(LAMP_HEAD_2_PLAYERS, 0);
 //    RPU_SetLampState(LAMP_HEAD_3_PLAYERS, 0);
@@ -1722,45 +1758,24 @@ void AddToBonus(byte bonus) {
 }
 
 void TargetBank() {
-    if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C)
-        && !RPU_ReadLampState(LAMP_D) && !RPU_ReadLampState(LAMP_E) && !RPU_ReadLampState(LAMP_F)) {
-            RPU_SetLampState(LAMP_A, 0, 0, 0);
-            RPU_SetLampState(LAMP_B, 0, 0, 0);
-            RPU_SetLampState(LAMP_C, 0, 0, 0);
-            RPU_SetLampState(LAMP_D, 0, 0, 0);
-            RPU_SetLampState(LAMP_E, 0, 0, 0);
-            RPU_SetLampState(LAMP_F, 0, 0, 0);
-        }
-    if ((TargetBankComplete[CurrentPlayer] == 1)) {
-            RPU_SetLampState(LAMP_SUPER_BONUS, 1, 0, 0);
-            RPU_SetLampState(LAMP_A, 1, 0, 0);
-            RPU_SetLampState(LAMP_B, 1, 0, 0);
-            RPU_SetLampState(LAMP_C, 1, 0, 0);
-            RPU_SetLampState(LAMP_D, 1, 0, 0);
-            RPU_SetLampState(LAMP_E, 1, 0, 0);
-            RPU_SetLampState(LAMP_F, 1, 0, 0);
-            TargetBankComplete[CurrentPlayer] += 1;
-    }
-    if  (TargetBankComplete[CurrentPlayer] >= 2) {
-            RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
-            RPU_SetLampState(LAMP_A, 1, 0, 0);
-            RPU_SetLampState(LAMP_B, 1, 0, 0);
-            RPU_SetLampState(LAMP_C, 1, 0, 0);
-            RPU_SetLampState(LAMP_D, 1, 0, 0);
-            RPU_SetLampState(LAMP_E, 1, 0, 0);
-            RPU_SetLampState(LAMP_F, 1, 0, 0);
-    }
-    if  (TargetBankComplete[CurrentPlayer] >= 3) {
-            RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, 0);
-            RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
-            RPU_SetLampState(LAMP_A, 0, 0, 0);
-            RPU_SetLampState(LAMP_B, 0, 0, 0);
-            RPU_SetLampState(LAMP_C, 0, 0, 0);
-            RPU_SetLampState(LAMP_D, 0, 0, 0);
-            RPU_SetLampState(LAMP_E, 0, 0, 0);
-            RPU_SetLampState(LAMP_F, 0, 0, 0);
-    }
+  if ((TargetBankComplete[CurrentPlayer] == 1)) {
+    //add 20,000 to bonus collect
+  }
+  if  (TargetBankComplete[CurrentPlayer] == 2) {
+    //add 30,000 to bonus collect
+  }
+  if  (TargetBankComplete[CurrentPlayer] >= 3) {
+    //add 30,000 to bonus collect and award special
+  }
 }
+
+void DropTargetBankComplete() {
+  DropTargetComplete += 1;
+  if (DropTargetComplete == 2){
+    AwardExtraBall();
+  }
+}
+
 
 void IncreaseBonusX() {
   boolean soundPlayed = false;
@@ -1849,6 +1864,7 @@ int InitGamePlay(boolean curStateChanged) {
   for (int count = 0; count < 4; count++) {
     // Initialize game-specific variables
     BonusX[count] = 1;
+    TargetBankComplete[count] = 0;
   }
   memset(CurrentScores, 0, 4 * sizeof(unsigned long));
 
@@ -1900,7 +1916,7 @@ int InitNewBall(bool curStateChanged) {
     GameModeStartTime = 0;
     GameModeEndTime = 0;
     GameMode = GAME_MODE_SKILL_SHOT;
-
+    DropTargetComplete = 0;
     ExtraBallCollected = false;
     SpecialCollected = false;
     PlayfieldMultiplier = 1;
@@ -1908,12 +1924,10 @@ int InitNewBall(bool curStateChanged) {
     ScoreAdditionAnimation = 0;
     ScoreAdditionAnimationStartTime = 0;
     BonusXAnimationStart = 0;
-  for (int count = 0; count < 4; count++) {
-    TargetBankComplete[count] = 0;
-    }
     BallSaveEndTime = 0;
 
     ShowNitroBonusLamps();
+    ShowDropTargetLamps();
 
     if (CurrentPlayer==0) {
       // Only change skill shot on first ball of round.
@@ -2471,14 +2485,15 @@ void HandleDropTarget(byte switchHit) {
   result = DropTargets.HandleDropTargetHit(switchHit);
   numTargetsDown = (unsigned long)CountBits(result);
 
-  CurrentScores[CurrentPlayer] += 500;
-
   boolean cleared = DropTargets.CheckIfBankCleared();
   if (cleared) {
-    DropTargets.ResetDropTargets(CurrentTime + 500, true);
+    DropTargets.ResetDropTargets(CurrentTime + 1000, true);
     PlaySoundEffect(SOUND_EFFECT_ENGINE_REV);
+    DropTargetBankComplete();
+    CurrentScores[CurrentPlayer] += 5500;
   } else {
-    PlaySoundEffect(SOUND_EFFECT_QUICK_REV);    
+    PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
+    CurrentScores[CurrentPlayer] += 500;
   }
   
 }
@@ -2550,10 +2565,10 @@ void HandleGamePlaySwitches(byte switchHit) {
       RPU_SetLampState(LAMP_A, 0, 0, 0);
       if (!RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C) && !RPU_ReadLampState(LAMP_D)
           && !RPU_ReadLampState(LAMP_E) && !RPU_ReadLampState(LAMP_F)) {
-          TargetBankComplete[CurrentPlayer] += 1;
-        }
+            TargetBankComplete[CurrentPlayer] += 1;
+            ShowNitroBonusLamps();
+          }
       AddToBonus(1);
-      RPU_SetLampState(LAMP_A, 0, 0, 0);
       LastSwitchHitTime = CurrentTime;
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
@@ -2564,10 +2579,10 @@ void HandleGamePlaySwitches(byte switchHit) {
       RPU_SetLampState(LAMP_B, 0, 0, 0);
       if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_C) && !RPU_ReadLampState(LAMP_D)
           && !RPU_ReadLampState(LAMP_E) && !RPU_ReadLampState(LAMP_F)) {
-          TargetBankComplete[CurrentPlayer] += 1;
-        }
+            TargetBankComplete[CurrentPlayer] += 1;
+            ShowNitroBonusLamps();
+          }
       AddToBonus(1);
-      RPU_SetLampState(LAMP_B, 0, 0, 0);
       LastSwitchHitTime = CurrentTime;
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
@@ -2578,10 +2593,10 @@ void HandleGamePlaySwitches(byte switchHit) {
       RPU_SetLampState(LAMP_C, 0, 0, 0);
       if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_D)
           && !RPU_ReadLampState(LAMP_E) && !RPU_ReadLampState(LAMP_F)) {
-          TargetBankComplete[CurrentPlayer] += 1;
-        }
+            TargetBankComplete[CurrentPlayer] += 1;
+            ShowNitroBonusLamps();
+          }
       AddToBonus(1);
-      RPU_SetLampState(LAMP_C, 0, 0, 0);
       LastSwitchHitTime = CurrentTime;
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
@@ -2592,24 +2607,10 @@ void HandleGamePlaySwitches(byte switchHit) {
       RPU_SetLampState(LAMP_D, 0, 0, 0);
       if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C)
           && !RPU_ReadLampState(LAMP_E) && !RPU_ReadLampState(LAMP_F)) {
-          TargetBankComplete[CurrentPlayer] += 1;
-        }
+            TargetBankComplete[CurrentPlayer] += 1;
+            ShowNitroBonusLamps();
+          }
       AddToBonus(1);
-      RPU_SetLampState(LAMP_D, 0, 0, 0);
-      LastSwitchHitTime = CurrentTime;
-      if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
-      break;
-
-    case SW_RIGHT_INLANE:
-      CurrentScores[CurrentPlayer] += 500;
-      PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-      RPU_SetLampState(LAMP_E, 0, 0, 0);
-      if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C)
-          && !RPU_ReadLampState(LAMP_D) && !RPU_ReadLampState(LAMP_F)) {
-          TargetBankComplete[CurrentPlayer] += 1;
-        }
-      AddToBonus(1);
-      RPU_SetLampState(LAMP_E, 0, 0, 0);
       LastSwitchHitTime = CurrentTime;
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
@@ -2617,13 +2618,27 @@ void HandleGamePlaySwitches(byte switchHit) {
     case SW_LEFT_INLANE:
       CurrentScores[CurrentPlayer] += 500;
       PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+      RPU_SetLampState(LAMP_E, 0, 0, 0);
+      if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C)
+          && !RPU_ReadLampState(LAMP_D) && !RPU_ReadLampState(LAMP_F)) {
+            TargetBankComplete[CurrentPlayer] += 1;
+            ShowNitroBonusLamps();
+          }
+      AddToBonus(1);
+      LastSwitchHitTime = CurrentTime;
+      if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
+      break;
+
+      case SW_RIGHT_INLANE:
+      CurrentScores[CurrentPlayer] += 500;
+      PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
       RPU_SetLampState(LAMP_F, 0, 0, 0);
       if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C)
           && !RPU_ReadLampState(LAMP_D) && !RPU_ReadLampState(LAMP_E)) {
-          TargetBankComplete[CurrentPlayer] += 1;
-        }
+            TargetBankComplete[CurrentPlayer] += 1;
+            ShowNitroBonusLamps();
+          }
       AddToBonus(1);
-      RPU_SetLampState(LAMP_F, 0, 0, 0);
       LastSwitchHitTime = CurrentTime;
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
@@ -2639,7 +2654,7 @@ void HandleGamePlaySwitches(byte switchHit) {
       CurrentScores[CurrentPlayer] += 1000;
       PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
       AddToBonus(3);
-      RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime+1000, true);
+      RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime+6000, true);
       LastSwitchHitTime = CurrentTime;
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
@@ -2648,7 +2663,7 @@ void HandleGamePlaySwitches(byte switchHit) {
       CurrentScores[CurrentPlayer] += 1000;
       PlaySoundEffect(SOUND_EFFECT_ENGINE_REV);
       AddToBonus(3);
-      RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime+1000, true);
+      RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime+2000, true);
       LastSwitchHitTime = CurrentTime;
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
