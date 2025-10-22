@@ -243,6 +243,7 @@ struct NGSBallState
     boolean spinnerLit;
     boolean letterLit[LETTER_COUNT];
     boolean specialLit;
+    unsigned long dropTargetBanksCompleted;
     TopSaucerArrowState topArrowState;
 };
 
@@ -579,12 +580,63 @@ void ShowLeftSaucerLamps()
 
 void ShowNitroBonusLamps()
 {
-    RPU_SetLampState(LAMP_A, BallState.letterLit[LETTER_A] ? 1 : 0, 0, 0);
-    RPU_SetLampState(LAMP_B, BallState.letterLit[LETTER_B] ? 1 : 0, 0, 0);
-    RPU_SetLampState(LAMP_C, BallState.letterLit[LETTER_C] ? 1 : 0, 0, 0);
-    RPU_SetLampState(LAMP_D, BallState.letterLit[LETTER_D] ? 1 : 0, 0, 0);
-    RPU_SetLampState(LAMP_E, BallState.letterLit[LETTER_E] ? 1 : 0, 0, 0);
-    RPU_SetLampState(LAMP_F, BallState.letterLit[LETTER_F] ? 1 : 0, 0, 0);
+    if ((SixLetterComplete[CurrentPlayer] == 0))
+    {
+        RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
+        RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
+        RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
+    }
+    else if ((SixLetterComplete[CurrentPlayer] == 1))
+    {
+        RPU_SetLampState(LAMP_SUPER_BONUS, 1, 0, 0);
+        RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
+        RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
+    }
+    else
+    {
+        RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
+        RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
+        RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, 0);
+    }
+}
+
+void ShowBonusLamps()
+{
+}
+
+void ShowBonusXLamps()
+{
+}
+
+void ShowStandupLamps()
+{
+}
+
+void ShowABCDEFLamps()
+{
+    RPU_SetLampState(LAMP_A, (BallState.letterLit[LETTER_A] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_B, (BallState.letterLit[LETTER_B] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_C, (BallState.letterLit[LETTER_C] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_D, (BallState.letterLit[LETTER_D] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_E, (BallState.letterLit[LETTER_E] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_F, (BallState.letterLit[LETTER_F] ? 1 : 0), 0, 0);
+}
+
+void ShowDropTargetLamps()
+{
+    if (BallState.dropTargetBanksCompleted == 0)
+    {
+        RPU_SetLampState(LAMP_DROP_TARGET_5000, 1, 0, 0);
+    }
+    if (BallState.dropTargetBanksCompleted == 1)
+    {
+        RPU_SetLampState(LAMP_EXTRABALL, 1, 0, 0);
+    }
+    if (BallState.dropTargetBanksCompleted >= 2)
+    {
+        RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 1, 0, 0);
+        RPU_SetLampState(LAMP_EXTRABALL, 0, 0, 0);
+    }
 }
 
 void ShowShootAgainLamps()
@@ -604,22 +656,6 @@ void ShowShootAgainLamps()
     }
 }
 
-void ShowBonusLamps() {
-  
-}
-
-void ShowBonusXLamps() {
-  
-}
-
-void ShowStandupLamps() {
-
-}
-
-void ShowDropTargetLamps() {
-
-}
-
 // Top level function for managing all normal lamps during unstructured play
 void ShowPlayfieldLamps()
 {
@@ -627,6 +663,8 @@ void ShowPlayfieldLamps()
     ShowLeftSaucerLamps();
     ShowNitroBonusLamps();
     ShowShootAgainLamps();
+    ShowDropTargetLamps();
+    ShowABCDEFLamps();
 
     RPU_SetLampState(LAMP_BONUS_SPINNER, (BallState.spinnerLit ? 1 : 0), 0, 0);
 }
@@ -2055,51 +2093,6 @@ void AddToBonus(byte bonus)
     }
 }
 
-void TargetBank()
-{
-    if (!RPU_ReadLampState(LAMP_A) && !RPU_ReadLampState(LAMP_B) && !RPU_ReadLampState(LAMP_C) && !RPU_ReadLampState(LAMP_D) && !RPU_ReadLampState(LAMP_E) && !RPU_ReadLampState(LAMP_F))
-    {
-        RPU_SetLampState(LAMP_A, 0, 0, 0);
-        RPU_SetLampState(LAMP_B, 0, 0, 0);
-        RPU_SetLampState(LAMP_C, 0, 0, 0);
-        RPU_SetLampState(LAMP_D, 0, 0, 0);
-        RPU_SetLampState(LAMP_E, 0, 0, 0);
-        RPU_SetLampState(LAMP_F, 0, 0, 0);
-    }
-    if ((SixLetterComplete[CurrentPlayer] == 1))
-    {
-        RPU_SetLampState(LAMP_SUPER_BONUS, 1, 0, 0);
-        RPU_SetLampState(LAMP_A, 1, 0, 0);
-        RPU_SetLampState(LAMP_B, 1, 0, 0);
-        RPU_SetLampState(LAMP_C, 1, 0, 0);
-        RPU_SetLampState(LAMP_D, 1, 0, 0);
-        RPU_SetLampState(LAMP_E, 1, 0, 0);
-        RPU_SetLampState(LAMP_F, 1, 0, 0);
-        SixLetterComplete[CurrentPlayer] += 1;
-    }
-    if (SixLetterComplete[CurrentPlayer] >= 2)
-    {
-        RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
-        RPU_SetLampState(LAMP_A, 1, 0, 0);
-        RPU_SetLampState(LAMP_B, 1, 0, 0);
-        RPU_SetLampState(LAMP_C, 1, 0, 0);
-        RPU_SetLampState(LAMP_D, 1, 0, 0);
-        RPU_SetLampState(LAMP_E, 1, 0, 0);
-        RPU_SetLampState(LAMP_F, 1, 0, 0);
-    }
-    if (SixLetterComplete[CurrentPlayer] >= 3)
-    {
-        RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, 0);
-        RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
-        RPU_SetLampState(LAMP_A, 0, 0, 0);
-        RPU_SetLampState(LAMP_B, 0, 0, 0);
-        RPU_SetLampState(LAMP_C, 0, 0, 0);
-        RPU_SetLampState(LAMP_D, 0, 0, 0);
-        RPU_SetLampState(LAMP_E, 0, 0, 0);
-        RPU_SetLampState(LAMP_F, 0, 0, 0);
-    }
-}
-
 void IncreaseBonusX()
 {
     boolean soundPlayed = false;
@@ -2228,7 +2221,7 @@ void ResetBallState()
     BallState.doubleBonus = false;
     BallState.spinnerLit = false;
 
-    for (int i = 0; i < LETTER_COUNT; i++) 
+    for (int i = 0; i < LETTER_COUNT; i++)
     {
         BallState.letterLit[i] = true;
     }
@@ -2286,7 +2279,6 @@ int InitNewBall(bool curStateChanged)
         BallSaveEndTime = 0;
 
         ResetBallState();
-
         if (CurrentPlayer == 0)
         {
             // Only change skill shot on first ball of round.
@@ -2966,30 +2958,34 @@ void CheckForCompleteABCDEF()
         !BallState.letterLit[LETTER_D] &&
         !BallState.letterLit[LETTER_E] &&
         !BallState.letterLit[LETTER_F])
-        {
-            SixLetterComplete[CurrentPlayer] += 1;
+    {
+        SixLetterComplete[CurrentPlayer] += 1;
 
-            for (int i = 0; i < LETTER_COUNT; i++) 
-                {
-                    BallState.letterLit[i] = true;
-                }
+        for (int i = 0; i < LETTER_COUNT; i++)
+        {
+            BallState.letterLit[i] = true;
         }
+    }
 }
 
 void HandleDropTarget(byte switchHit)
 {
+
     byte result;
     unsigned long numTargetsDown = 0;
     result = DropTargets.HandleDropTargetHit(switchHit);
     numTargetsDown = (unsigned long)CountBits(result);
-
-    CurrentScores[CurrentPlayer] += 500;
 
     boolean cleared = DropTargets.CheckIfBankCleared();
     if (cleared)
     {
         DropTargets.ResetDropTargets(CurrentTime + 500, true);
         PlaySoundEffect(SOUND_EFFECT_ENGINE_REV);
+        BallState.dropTargetBanksCompleted += 1;
+        if (BallState.dropTargetBanksCompleted)
+        {
+            AwardExtraBall();
+        }
     }
     else
     {
