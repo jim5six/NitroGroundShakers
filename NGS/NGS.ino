@@ -94,6 +94,7 @@ boolean MachineStateChanged = true;
 #define SOUND_EFFECT_ROLL_OVER 9
 #define SOUND_EFFECT_BACKGROUND1 10
 #define SOUND_EFFECT_BACKGROUND2 11
+#define SOUND_EFFECT_BACKGROUND3 12
 #define SOUND_EFFECT_SWITCH_HIT 15
 #define SOUND_EFFECT_TEN_POINT 16
 #define SOUND_EFFECT_GAME_OVER 20
@@ -134,6 +135,12 @@ unsigned short SelfTestStateToCalloutMap[34] = {134, 135, 133, 136, 137, 138, 13
 
 // Game play status callouts
 #define NUM_VOICE_NOTIFICATIONS 24
+//Game Call Outs
+#define SOUND_EFFECT_GAME_START 200
+#define SOUND_EFFECT_BALL_SAVE  201
+#define SOUND_EFFECT_EXTRA_BALL 202
+
+
 
 #define SOUND_EFFECT_VP_VOICE_NOTIFICATIONS_START 300
 #define SOUND_EFFECT_VP_PLAYER 300
@@ -2300,7 +2307,7 @@ int InitNewBall(bool curStateChanged)
         RPU_PushToTimedSolenoidStack(SOL_OUTHOLE, 16, CurrentTime + 1000);
         NumberOfBallsInPlay = 1;
 
-        PlayBackgroundSong(SOUND_EFFECT_BACKGROUND2);
+        PlayBackgroundSong(SOUND_EFFECT_BACKGROUND3);
     }
 
     // We should only consider the ball initialized when
@@ -3038,7 +3045,6 @@ void HandleGamePlaySwitches(byte switchHit)
         ToggleTopSaucerArrow();
         CurrentScores[CurrentPlayer] += 100;
         PlaySoundEffect(SOUND_EFFECT_BANG);
-        AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3046,9 +3052,12 @@ void HandleGamePlaySwitches(byte switchHit)
 
     case SW_BOTTOM_POP:
         ToggleTopSaucerArrow();
-        CurrentScores[CurrentPlayer] += 100;
+        if (RPU_ReadLampState(LAMP_POP_BUMPER)){
+          CurrentScores[CurrentPlayer] += 1000;  
+        } else {
+          CurrentScores[CurrentPlayer] += 100;
+        } 
         PlaySoundEffect(SOUND_EFFECT_BANG);
-        AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3064,7 +3073,7 @@ void HandleGamePlaySwitches(byte switchHit)
         {
             CurrentScores[CurrentPlayer] += 100;
         }
-        PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
+        PlaySoundEffect(SOUND_EFFECT_SPINNER);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3089,8 +3098,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_A_LANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        AddToBonusLane(1, BONUS_LANE_LEFT);
         PlayerState[CurrentPlayer].letterLit[LETTER_A] = false;
-        AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3099,8 +3108,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_B_LANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        AddToBonusLane(1, BONUS_LANE_RIGHT);
         PlayerState[CurrentPlayer].letterLit[LETTER_B] = false;
-        AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3109,8 +3118,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_C_TARGET:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
+        AddToBonusLane(1, BONUS_LANE_LEFT);
         PlayerState[CurrentPlayer].letterLit[LETTER_C] = false;
-        AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3119,8 +3128,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_D_TARGET:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
+        AddToBonusLane(1, BONUS_LANE_RIGHT);
         PlayerState[CurrentPlayer].letterLit[LETTER_D] = false;
-        AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3130,7 +3139,7 @@ void HandleGamePlaySwitches(byte switchHit)
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
         PlayerState[CurrentPlayer].letterLit[LETTER_F] = false;
-        AddToBonus(1);
+        AddToBonusLane(1, BONUS_LANE_RIGHT);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3149,6 +3158,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_TARGET_ADVANCE_LR_BONUS:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
+        AddToBonusLane(3, BONUS_LANE_BOTH);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3157,8 +3167,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_CENTER_SAUCER:
         CurrentScores[CurrentPlayer] += 1000;
         BallState.spinnerLit = true;
+        RPU_SetLampState(LAMP_POP_BUMPER, 1, 0, 0);
         AddToBonusLane(3, BONUS_LANE_BOTH);
-
         switch (BallState.topArrowState)
         {
         case LEFT_ARROW_SINGLE:
@@ -3184,8 +3194,7 @@ void HandleGamePlaySwitches(byte switchHit)
         }
 
         PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
-        AddToBonus(3);
-        RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 1000, true);
+        RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 2000, true);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3194,15 +3203,16 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_LEFT_SAUCER:
         CurrentScores[CurrentPlayer] += 1000;
         PlaySoundEffect(SOUND_EFFECT_ENGINE_REV);
-        AddToBonus(3);
-        RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 1000, true);
+        AddToBonusLane(3, BONUS_LANE_BOTH);
+        RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 2000, true);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
         break;
 
     case SW_RUBBER:
-        CurrentScores[CurrentPlayer] += 100;
+        ToggleTopSaucerArrow();    
+        CurrentScores[CurrentPlayer] += 30;
         PlaySoundEffect(SOUND_EFFECT_TEN_POINT);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
