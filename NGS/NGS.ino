@@ -221,7 +221,8 @@ enum BonusLanes
 {
     BONUS_LANE_LEFT,
     BONUS_LANE_RIGHT,
-    BONUS_LANE_COUNT
+    BONUS_LANE_COUNT,
+    BONUS_LANE_BOTH //For use when advancing bonus, use this value when you want to advance both
 };
 
 enum PlayfieldLetters
@@ -2099,6 +2100,11 @@ void AddToBonus(byte bonus)
     }
 }
 
+void AddToBonusLane(byte amount, BonusLanes whichLane)
+{
+    BallState.laneBonus[whichLane] += amount;
+}
+
 void IncreaseBonusX()
 {
     boolean soundPlayed = false;
@@ -3134,7 +3140,7 @@ void HandleGamePlaySwitches(byte switchHit)
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
         PlayerState[CurrentPlayer].letterLit[LETTER_E] = false;
-        AddToBonus(1);
+        AddToBonusLane(1, BONUS_LANE_LEFT);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3151,6 +3157,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_CENTER_SAUCER:
         CurrentScores[CurrentPlayer] += 1000;
         BallState.spinnerLit = true;
+        AddToBonusLane(3, BONUS_LANE_BOTH);
 
         switch (BallState.topArrowState)
         {
