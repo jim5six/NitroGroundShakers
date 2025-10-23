@@ -241,15 +241,16 @@ struct NGSBallState
     boolean collectLit[BONUS_LANE_COUNT];
     boolean doubleBonus;
     boolean spinnerLit;
-    boolean letterLit[LETTER_COUNT];
     boolean specialLit;
     unsigned long dropTargetBanksCompleted;
     TopSaucerArrowState topArrowState;
 };
 
-// struct NGSGameState {
-//     bool test;
-// }
+struct NGSPlayerState
+{
+    boolean letterLit[LETTER_COUNT];
+    byte sixLetterComplete;
+};
 
 // NGSGameState GameState;
 byte CurrentPlayer = 0;
@@ -261,7 +262,6 @@ byte GameMode = GAME_MODE_SKILL_SHOT;
 byte MaxTiltWarnings = 2;
 byte NumTiltWarnings = 0;
 byte CurrentAchievements[4];
-byte SixLetterComplete[4];
 boolean SamePlayerShootsAgain = false;
 boolean BallSaveUsed = false;
 boolean ExtraBallCollected = false;
@@ -284,6 +284,7 @@ unsigned long LastSwitchHitTime;
 unsigned long BallSaveEndTime;
 
 NGSBallState BallState;
+NGSPlayerState PlayerState[4];
 
 #define BALL_SAVE_GRACE_PERIOD 2000
 
@@ -580,13 +581,13 @@ void ShowLeftSaucerLamps()
 
 void ShowNitroBonusLamps()
 {
-    if ((SixLetterComplete[CurrentPlayer] == 0))
+    if ((PlayerState[CurrentPlayer].sixLetterComplete == 0))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
     }
-    else if ((SixLetterComplete[CurrentPlayer] == 1))
+    else if ((PlayerState[CurrentPlayer].sixLetterComplete == 1))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 1, 0, 0);
         RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
@@ -614,28 +615,33 @@ void ShowStandupLamps()
 
 void ShowABCDEFLamps()
 {
-    RPU_SetLampState(LAMP_A, (BallState.letterLit[LETTER_A] ? 1 : 0), 0, 0);
-    RPU_SetLampState(LAMP_B, (BallState.letterLit[LETTER_B] ? 1 : 0), 0, 0);
-    RPU_SetLampState(LAMP_C, (BallState.letterLit[LETTER_C] ? 1 : 0), 0, 0);
-    RPU_SetLampState(LAMP_D, (BallState.letterLit[LETTER_D] ? 1 : 0), 0, 0);
-    RPU_SetLampState(LAMP_E, (BallState.letterLit[LETTER_E] ? 1 : 0), 0, 0);
-    RPU_SetLampState(LAMP_F, (BallState.letterLit[LETTER_F] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_A, (PlayerState[CurrentPlayer].letterLit[LETTER_A] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_B, (PlayerState[CurrentPlayer].letterLit[LETTER_B] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_C, (PlayerState[CurrentPlayer].letterLit[LETTER_C] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_D, (PlayerState[CurrentPlayer].letterLit[LETTER_D] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_E, (PlayerState[CurrentPlayer].letterLit[LETTER_E] ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_F, (PlayerState[CurrentPlayer].letterLit[LETTER_F] ? 1 : 0), 0, 0);
 }
 
 void ShowDropTargetLamps()
 {
     if (BallState.dropTargetBanksCompleted == 0)
     {
+        RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 0, 0, 0);
+        RPU_SetLampState(LAMP_EXTRABALL, 0, 0, 0);
         RPU_SetLampState(LAMP_DROP_TARGET_5000, 1, 0, 0);
     }
     if (BallState.dropTargetBanksCompleted == 1)
     {
+        RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 0, 0, 0);
         RPU_SetLampState(LAMP_EXTRABALL, 1, 0, 0);
+        RPU_SetLampState(LAMP_DROP_TARGET_5000, 0, 0, 0);
     }
     if (BallState.dropTargetBanksCompleted >= 2)
     {
         RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 1, 0, 0);
         RPU_SetLampState(LAMP_EXTRABALL, 0, 0, 0);
+        RPU_SetLampState(LAMP_DROP_TARGET_5000, 0, 0, 0);
     }
 }
 
@@ -2195,6 +2201,11 @@ int InitGamePlay(boolean curStateChanged)
     {
         // Initialize game-specific variables
         BonusX[count] = 1;
+        for (int letter = 0; letter < LETTER_COUNT; letter++)
+        {
+            PlayerState[CurrentPlayer].letterLit[letter] = true;
+            PlayerState[CurrentPlayer].sixLetterComplete = 0;
+        }
     }
     memset(CurrentScores, 0, 4 * sizeof(unsigned long));
 
@@ -2221,11 +2232,7 @@ void ResetBallState()
     BallState.doubleBonus = false;
     BallState.spinnerLit = false;
 
-    for (int i = 0; i < LETTER_COUNT; i++)
-    {
-        BallState.letterLit[i] = true;
-    }
-
+    BallState.dropTargetBanksCompleted = 0;
     BallState.specialLit = false;
     BallState.topArrowState = LEFT_ARROW_SINGLE;
 }
@@ -2272,10 +2279,6 @@ int InitNewBall(bool curStateChanged)
         ScoreAdditionAnimation = 0;
         ScoreAdditionAnimationStartTime = 0;
         BonusXAnimationStart = 0;
-        for (int count = 0; count < 4; count++)
-        {
-            SixLetterComplete[count] = 0;
-        }
         BallSaveEndTime = 0;
 
         ResetBallState();
@@ -2952,18 +2955,18 @@ void ToggleTopSaucerArrow()
 
 void CheckForCompleteABCDEF()
 {
-    if (!BallState.letterLit[LETTER_A] &&
-        !BallState.letterLit[LETTER_B] &&
-        !BallState.letterLit[LETTER_C] &&
-        !BallState.letterLit[LETTER_D] &&
-        !BallState.letterLit[LETTER_E] &&
-        !BallState.letterLit[LETTER_F])
+    if (!PlayerState[CurrentPlayer].letterLit[LETTER_A] &&
+        !PlayerState[CurrentPlayer].letterLit[LETTER_B] &&
+        !PlayerState[CurrentPlayer].letterLit[LETTER_C] &&
+        !PlayerState[CurrentPlayer].letterLit[LETTER_D] &&
+        !PlayerState[CurrentPlayer].letterLit[LETTER_E] &&
+        !PlayerState[CurrentPlayer].letterLit[LETTER_F])
     {
-        SixLetterComplete[CurrentPlayer] += 1;
+        PlayerState[CurrentPlayer].sixLetterComplete += 1;
 
         for (int i = 0; i < LETTER_COUNT; i++)
         {
-            BallState.letterLit[i] = true;
+            PlayerState[CurrentPlayer].letterLit[i] = true;
         }
     }
 }
@@ -2982,7 +2985,11 @@ void HandleDropTarget(byte switchHit)
         DropTargets.ResetDropTargets(CurrentTime + 500, true);
         PlaySoundEffect(SOUND_EFFECT_ENGINE_REV);
         BallState.dropTargetBanksCompleted += 1;
-        if (BallState.dropTargetBanksCompleted)
+        if (BallState.dropTargetBanksCompleted == 1)
+        {
+            CurrentScores[CurrentPlayer] += 5000;
+        }
+        if (BallState.dropTargetBanksCompleted == 2)
         {
             AwardExtraBall();
         }
@@ -3013,6 +3020,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_DROP_TARGET2:
     case SW_DROP_TARGET3:
     case SW_DROP_TARGET4:
+        CurrentScores[CurrentPlayer] += 500;
         HandleDropTarget(switchHit);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3075,7 +3083,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_A_LANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        BallState.letterLit[LETTER_A] = false;
+        PlayerState[CurrentPlayer].letterLit[LETTER_A] = false;
         AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3085,7 +3093,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_B_LANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        BallState.letterLit[LETTER_B] = false;
+        PlayerState[CurrentPlayer].letterLit[LETTER_B] = false;
         AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3095,7 +3103,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_C_TARGET:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
-        BallState.letterLit[LETTER_C] = false;
+        PlayerState[CurrentPlayer].letterLit[LETTER_C] = false;
         AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3105,7 +3113,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_D_TARGET:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
-        BallState.letterLit[LETTER_D] = false;
+        PlayerState[CurrentPlayer].letterLit[LETTER_D] = false;
         AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3115,7 +3123,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_RIGHT_INLANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        BallState.letterLit[LETTER_F] = false;
+        PlayerState[CurrentPlayer].letterLit[LETTER_F] = false;
         AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3125,7 +3133,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_LEFT_INLANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        BallState.letterLit[LETTER_E] = false;
+        PlayerState[CurrentPlayer].letterLit[LETTER_E] = false;
         AddToBonus(1);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
