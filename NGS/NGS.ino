@@ -97,7 +97,7 @@ boolean MachineStateChanged = true;
 #define SOUND_EFFECT_BACKGROUND3 12
 #define SOUND_EFFECT_SWITCH_HIT 15
 #define SOUND_EFFECT_TEN_POINT 16
-#define SOUND_EFFECT_GAME_OVER 20
+#define SOUND_EFFECT_TIRE_SQUEL 17
 #define SOUND_EFFECT_TILT_WARNING 28
 #define SOUND_EFFECT_MATCH_SPIN 30
 #define SOUND_EFFECT_TILT 61
@@ -134,27 +134,16 @@ unsigned short SelfTestStateToCalloutMap[34] = {134, 135, 133, 136, 137, 138, 13
 #define NUM_BATTLE_SONGS 3
 
 // Game play status callouts
-#define NUM_VOICE_NOTIFICATIONS 24
+#define NUM_VOICE_NOTIFICATIONS 5
+
 //Game Call Outs
-#define SOUND_EFFECT_GAME_START 200
-#define SOUND_EFFECT_BALL_SAVE  201
-#define SOUND_EFFECT_EXTRA_BALL 202
-
-
-
 #define SOUND_EFFECT_VP_VOICE_NOTIFICATIONS_START 300
-#define SOUND_EFFECT_VP_PLAYER 300
-#define SOUND_EFFECT_VP_ONE 301
-#define SOUND_EFFECT_VP_TWO 302
-#define SOUND_EFFECT_VP_THREE 303
-#define SOUND_EFFECT_VP_FOUR 304
-#define SOUND_EFFECT_VP_EXTRA_BALL 305
+#define SOUND_EFFECT_BALL_START 300
+#define SOUND_EFFECT_BALL_SAVE  301
+#define SOUND_EFFECT_EXTRA_BALL 302
+#define SOUND_EFFECT_GAME_OVER 303
+#define SOUND_EFFECT_GAME_START 304
 
-#define SOUND_EFFECT_VP_ADD_PLAYER_1 306
-#define SOUND_EFFECT_VP_ADD_PLAYER_2 (SOUND_EFFECT_VP_ADD_PLAYER_1 + 1)
-#define SOUND_EFFECT_VP_ADD_PLAYER_3 (SOUND_EFFECT_VP_ADD_PLAYER_1 + 2)
-#define SOUND_EFFECT_VP_ADD_PLAYER_4 (SOUND_EFFECT_VP_ADD_PLAYER_1 + 3)
-#define SOUND_EFFECT_VP_SHOOT_AGAIN 310
 
 #define SOUND_EFFECT_DIAG_START 1900
 #define SOUND_EFFECT_DIAG_CREDIT_RESET_BUTTON 1900
@@ -504,8 +493,8 @@ void setup()
     DropTargets.DefineSwitch(3, SW_DROP_TARGET4);
     DropTargets.DefineResetSolenoid(0, SOL_DROP_TARGET_RESET);
 
-    Audio.SetMusicDuckingGain(12);
-    Audio.QueueSound(SOUND_EFFECT_MACHINE_START, AUDIO_PLAY_TYPE_WAV_TRIGGER, CurrentTime + 1200);
+    //Audio.SetMusicDuckingGain(12);
+    Audio.QueueSound(SOUND_EFFECT_GAME_START, AUDIO_PLAY_TYPE_WAV_TRIGGER, CurrentTime + 4000);
 }
 
 byte ReadSetting(byte setting, byte defaultValue)
@@ -1117,12 +1106,12 @@ boolean AddPlayer(boolean resetNumPlayers = false)
 
     CurrentNumPlayers += 1;
     RPU_SetDisplay(CurrentNumPlayers - 1, 0, true, 2);
-    //  RPU_SetDisplayBlank(CurrentNumPlayers - 1, 0x30);
+    RPU_SetDisplayBlank(CurrentNumPlayers - 1, 0x30);
 
-    //  RPU_SetLampState(LAMP_HEAD_1_PLAYER, CurrentNumPlayers==1, 0, 500);
-    //  RPU_SetLampState(LAMP_HEAD_2_PLAYERS, CurrentNumPlayers==2, 0, 500);
-    //  RPU_SetLampState(LAMP_HEAD_3_PLAYERS, CurrentNumPlayers==3, 0, 500);
-    //  RPU_SetLampState(LAMP_HEAD_4_PLAYERS, CurrentNumPlayers==4, 0, 500);
+    RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP, CurrentNumPlayers==1, 0, 500);
+    RPU_SetLampState(LAMP_HEAD_PLAYER_2_UP, CurrentNumPlayers==2, 0, 500);
+    RPU_SetLampState(LAMP_HEAD_PLAYER_3_UP, CurrentNumPlayers==3, 0, 500);
+    RPU_SetLampState(LAMP_HEAD_PLAYER_4_UP, CurrentNumPlayers==4, 0, 500);
 
     if (!FreePlayMode)
     {
@@ -1131,10 +1120,10 @@ boolean AddPlayer(boolean resetNumPlayers = false)
         RPU_SetDisplayCredits(Credits, !FreePlayMode);
         RPU_SetCoinLockout(false);
     }
-    if (CurrentNumPlayers == 1)
-        Audio.StopAllAudio();
-    QueueNotification(SOUND_EFFECT_VP_ADD_PLAYER_1 + (CurrentNumPlayers - 1), 10);
-
+    if (CurrentNumPlayers == 1) Audio.StopAllAudio();
+    
+    QueueNotification(SOUND_EFFECT_BALL_START, 9);
+    
     RPU_WriteULToEEProm(RPU_TOTAL_PLAYS_EEPROM_START_BYTE, RPU_ReadULFromEEProm(RPU_TOTAL_PLAYS_EEPROM_START_BYTE) + 1);
 
     return true;
@@ -1265,7 +1254,7 @@ boolean AwardExtraBall()
         SamePlayerShootsAgain = true;
         RPU_SetLampState(LAMP_SHOOT_AGAIN, SamePlayerShootsAgain);
         RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, SamePlayerShootsAgain);
-        QueueNotification(SOUND_EFFECT_VP_EXTRA_BALL, 8);
+        QueueNotification(SOUND_EFFECT_EXTRA_BALL, 10);
     }
     return true;
 }
@@ -1602,7 +1591,7 @@ int RunSelfTest(int curState, boolean curStateChanged)
                 {
                     if (SoundSettingTimeout)
                         Audio.StopAllAudio();
-                    Audio.PlaySound(SOUND_EFFECT_BACKGROUND_SONG_1, AUDIO_PLAY_TYPE_WAV_TRIGGER, curVal);
+                    Audio.PlaySound(SOUND_EFFECT_BACKGROUND3, AUDIO_PLAY_TYPE_WAV_TRIGGER, curVal);
                     Audio.SetMusicVolume(curVal);
                     SoundSettingTimeout = CurrentTime + 5000;
                 }
@@ -1610,7 +1599,7 @@ int RunSelfTest(int curState, boolean curStateChanged)
                 {
                     if (SoundSettingTimeout)
                         Audio.StopAllAudio();
-                    Audio.PlaySound(SOUND_EFFECT_BANG, AUDIO_PLAY_TYPE_WAV_TRIGGER, curVal);
+                    Audio.PlaySound(SOUND_EFFECT_SPINNER, AUDIO_PLAY_TYPE_WAV_TRIGGER, curVal);
                     Audio.SetSoundFXVolume(curVal);
                     SoundSettingTimeout = CurrentTime + 5000;
                 }
@@ -1618,7 +1607,7 @@ int RunSelfTest(int curState, boolean curStateChanged)
                 {
                     if (SoundSettingTimeout)
                         Audio.StopAllAudio();
-                    Audio.PlaySound(SOUND_EFFECT_VP_EXTRA_BALL, AUDIO_PLAY_TYPE_WAV_TRIGGER, curVal);
+                    Audio.PlaySound(SOUND_EFFECT_EXTRA_BALL, AUDIO_PLAY_TYPE_WAV_TRIGGER, curVal);
                     Audio.SetNotificationsVolume(curVal);
                     SoundSettingTimeout = CurrentTime + 3000;
                 }
@@ -1769,14 +1758,6 @@ void QueueNotification(unsigned int soundEffectNum, byte priority)
     // played (for queueing and ducking)
     //  Audio.QueuePrioritizedNotification(soundEffectNum, VoicePromptLengths[soundEffectNum-SOUND_EFFECT_VP_VOICE_NOTIFICATIONS_START], priority, CurrentTime);
     Audio.QueuePrioritizedNotification(soundEffectNum, 0, priority, CurrentTime);
-}
-
-void AlertPlayerUp(byte playerNum)
-{
-    (void)playerNum;
-    //  QueueNotification(SOUND_EFFECT_VP_PLAYER, 1);
-    //  QueueNotification(SOUND_EFFECT_VP_ONE + playerNum, 1);
-    //  QueueNotification(SOUND_EFFECT_VP_LAUNCH_WHEN_READY, 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -2232,8 +2213,8 @@ int InitGamePlay(boolean curStateChanged)
     NumberOfBallsLocked = 0;
     ShowPlayerScores(0xFF, false, false);
 
-    PlaySoundEffect(2);
-
+    QueueNotification(SOUND_EFFECT_BALL_SAVE, 9);
+    
     return MACHINE_STATE_INIT_NEW_BALL;
 }
 
@@ -2263,7 +2244,6 @@ int InitNewBall(bool curStateChanged)
         RPU_SetDisableFlippers(false);
         RPU_EnableSolenoidStack();
         RPU_SetDisplayCredits(Credits, !FreePlayMode);
-        //    if (CurrentNumPlayers > 1 && (ballNum != 1 || playerNum != 0) && !SamePlayerShootsAgain) AlertPlayerUp(playerNum);
         SamePlayerShootsAgain = false;
 
         RPU_SetDisplayBallInPlay(CurrentBallInPlay);
@@ -2308,6 +2288,7 @@ int InitNewBall(bool curStateChanged)
         NumberOfBallsInPlay = 1;
 
         PlayBackgroundSong(SOUND_EFFECT_BACKGROUND3);
+        QueueNotification(SOUND_EFFECT_BALL_START, 10);
     }
 
     // We should only consider the ball initialized when
@@ -2579,8 +2560,8 @@ int ManageGameMode()
                     if (BallSaveEndTime && CurrentTime < (BallSaveEndTime + BALL_SAVE_GRACE_PERIOD))
                     {
                         RPU_PushToTimedSolenoidStack(SOL_OUTHOLE, 16, CurrentTime + 100);
-                        QueueNotification(SOUND_EFFECT_VP_SHOOT_AGAIN, 10);
-
+                        QueueNotification(SOUND_EFFECT_BALL_SAVE, 10);
+                        
                         RPU_SetLampState(LAMP_SHOOT_AGAIN, 0);
                         BallTimeInTrough = CurrentTime;
                         returnState = MACHINE_STATE_NORMAL_GAMEPLAY;
@@ -2763,7 +2744,7 @@ int ShowMatchSequence(boolean curStateChanged)
 
     if (curStateChanged)
     {
-        MatchSequenceStartTime = CurrentTime;
+        MatchSequenceStartTime = CurrentTime + 4500;
         MatchDelay = 1500;
         MatchDigit = CurrentTime % 10;
         NumMatchSpins = 0;
@@ -3044,7 +3025,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_RIGHT_POP:
         ToggleTopSaucerArrow();
         CurrentScores[CurrentPlayer] += 100;
-        PlaySoundEffect(SOUND_EFFECT_BANG);
+        PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3057,7 +3038,7 @@ void HandleGamePlaySwitches(byte switchHit)
         } else {
           CurrentScores[CurrentPlayer] += 100;
         } 
-        PlaySoundEffect(SOUND_EFFECT_BANG);
+        PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEL);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3081,7 +3062,7 @@ void HandleGamePlaySwitches(byte switchHit)
 
     case SW_RIGHT_OUTLANE:
         CurrentScores[CurrentPlayer] += 1000;
-        PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3089,7 +3070,7 @@ void HandleGamePlaySwitches(byte switchHit)
 
     case SW_LEFT_OUTLANE:
         CurrentScores[CurrentPlayer] += 1000;
-        PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3117,7 +3098,7 @@ void HandleGamePlaySwitches(byte switchHit)
 
     case SW_C_TARGET:
         CurrentScores[CurrentPlayer] += 500;
-        PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
+        PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
         AddToBonusLane(1, BONUS_LANE_LEFT);
         PlayerState[CurrentPlayer].letterLit[LETTER_C] = false;
         LastSwitchHitTime = CurrentTime;
@@ -3127,7 +3108,7 @@ void HandleGamePlaySwitches(byte switchHit)
 
     case SW_D_TARGET:
         CurrentScores[CurrentPlayer] += 500;
-        PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
+        PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
         AddToBonusLane(1, BONUS_LANE_RIGHT);
         PlayerState[CurrentPlayer].letterLit[LETTER_D] = false;
         LastSwitchHitTime = CurrentTime;
@@ -3190,11 +3171,11 @@ void HandleGamePlaySwitches(byte switchHit)
             break;
 
         default:
-            break;
+        break;
         }
 
         PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
-        RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 2000, true);
+        RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 6000, true);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3202,9 +3183,9 @@ void HandleGamePlaySwitches(byte switchHit)
 
     case SW_LEFT_SAUCER:
         CurrentScores[CurrentPlayer] += 1000;
-        PlaySoundEffect(SOUND_EFFECT_ENGINE_REV);
+        PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
         AddToBonusLane(3, BONUS_LANE_BOTH);
-        RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 2000, true);
+        RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 6000, true);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3252,7 +3233,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged)
 
         if (SamePlayerShootsAgain)
         {
-            QueueNotification(SOUND_EFFECT_VP_SHOOT_AGAIN, 10);
+            QueueNotification(SOUND_EFFECT_BALL_SAVE, 9);
             returnState = MACHINE_STATE_INIT_NEW_BALL;
         }
         else
@@ -3267,23 +3248,18 @@ int RunGamePlayMode(int curState, boolean curStateChanged)
 
             scoreAtTop = CurrentScores[CurrentPlayer];
 
-            if (CurrentBallInPlay > BallsPerGame)
-            {
+            if (CurrentBallInPlay > BallsPerGame) {
                 CheckHighScores();
                 PlaySoundEffect(SOUND_EFFECT_GAME_OVER);
-                for (int count = 0; count < CurrentNumPlayers; count++)
-                {
+                for (int count = 0; count < CurrentNumPlayers; count++) {
                     RPU_SetDisplay(count, CurrentScores[count], true, 2);
                 }
 
                 returnState = MACHINE_STATE_MATCH_MODE;
-            }
-            else
+            } else
                 returnState = MACHINE_STATE_INIT_NEW_BALL;
         }
-    }
-    else if (curState == MACHINE_STATE_MATCH_MODE)
-    {
+    } else if (curState == MACHINE_STATE_MATCH_MODE){
         returnState = ShowMatchSequence(curStateChanged);
     }
 
