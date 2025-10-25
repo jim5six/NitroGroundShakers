@@ -554,16 +554,6 @@ void ShowLeftSaucerLamps()
 {
     RPU_SetLampState(LAMP_COLLECT_BONUS_LEFT, BallState.collectLit[BONUS_LANE_LEFT] ? 1 : 0, 0, 0);
     RPU_SetLampState(LAMP_COLLECT_BONUS_RIGHT, BallState.collectLit[BONUS_LANE_RIGHT] ? 1 : 0, 0, 0);
-
-    // Add bonus light is only lit if neither collect is lit
-    if (!BallState.collectLit[BONUS_LANE_LEFT] && !BallState.collectLit[BONUS_LANE_RIGHT])
-    {
-        RPU_SetLampState(LAMP_ARROW_ADD_LR_BONUS, 1, 0, 0);
-    }
-    else
-    {
-        RPU_SetLampState(LAMP_ARROW_ADD_LR_BONUS, 0, 0, 0);
-    }
 }
 
 void ShowNitroBonusLamps()
@@ -661,6 +651,7 @@ void ShowPlayfieldLamps()
 
     RPU_SetLampState(LAMP_DOUBLE_BONUS_BOTTOM, (BallState.doubleBonus ? 1 : 0), 0, 0);
     RPU_SetLampState(LAMP_BONUS_SPINNER, (BallState.spinnerLit ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_ARROW_ADD_LR_BONUS, 1, 0, 0);
 }
 
 /*
