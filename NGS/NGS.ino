@@ -212,10 +212,8 @@ AudioHandler Audio;
 
 enum TopSaucerArrowState
 {
-    LEFT_ARROW_SINGLE,
-    RIGHT_ARROW_SINGLE,
-    LEFT_ARROW_DOUBLE,
-    RIGHT_ARROW_DOUBLE
+    LEFT_ARROW_LIT,
+    RIGHT_ARROW_LIT
 };
 
 enum BonusLanes
@@ -251,6 +249,7 @@ struct NGSBallState
 struct NGSPlayerState
 {
     boolean letterLit[LETTER_COUNT];
+    boolean doubleBonusLit;
     byte sixLetterComplete;
 };
 
@@ -546,23 +545,9 @@ void SetGeneralIlluminationOn(boolean setGIOn = true)
 
 void ShowTopArrowLamps()
 {
-    if (BallState.topArrowState == LEFT_ARROW_SINGLE || BallState.topArrowState == LEFT_ARROW_DOUBLE)
-    {
-        RPU_SetLampState(LAMP_TOP_ARROW_LEFT, 1, 0, 0);
-    }
-    else
-    {
-        RPU_SetLampState(LAMP_TOP_ARROW_LEFT, 0, 0);
-    }
-
-    if (BallState.topArrowState == RIGHT_ARROW_SINGLE || BallState.topArrowState == RIGHT_ARROW_DOUBLE)
-    {
-        RPU_SetLampState(LAMP_TOP_ARROW_RIGHT, 1, 0, 0);
-    }
-    else
-    {
-        RPU_SetLampState(LAMP_TOP_ARROW_RIGHT, 0, 0);
-    }
+    RPU_SetLampState(LAMP_TOP_ARROW_LEFT, (BallState.topArrowState == LEFT_ARROW_LIT ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_TOP_ARROW_RIGHT, (BallState.topArrowState == RIGHT_ARROW_LIT ? 1 : 0), 0, 0);
+    RPU_SetLampState(LAMP_DOUBLE_BONUS_TOP, (PlayerState[CurrentPlayer].doubleBonusLit ? 1 : 0), 0, 0);
 }
 
 void ShowLeftSaucerLamps()
@@ -674,6 +659,7 @@ void ShowPlayfieldLamps()
     ShowDropTargetLamps();
     ShowABCDEFLamps();
 
+    RPU_SetLampState(LAMP_DOUBLE_BONUS_BOTTOM, (BallState.doubleBonus ? 1 : 0), 0, 0);
     RPU_SetLampState(LAMP_BONUS_SPINNER, (BallState.spinnerLit ? 1 : 0), 0, 0);
 }
 
@@ -2203,6 +2189,7 @@ int InitGamePlay(boolean curStateChanged)
         for (int letter = 0; letter < LETTER_COUNT; letter++)
         {
             PlayerState[CurrentPlayer].letterLit[letter] = true;
+            PlayerState[CurrentPlayer].doubleBonusLit = true;
             PlayerState[CurrentPlayer].sixLetterComplete = 0;
         }
     }
@@ -2231,7 +2218,7 @@ void ResetBallState()
 
     BallState.dropTargetBanksCompleted = 0;
     BallState.specialLit = false;
-    BallState.topArrowState = LEFT_ARROW_SINGLE;
+    BallState.topArrowState = RIGHT_ARROW_LIT;
 }
 
 int InitNewBall(bool curStateChanged)
@@ -2932,22 +2919,16 @@ int HandleSystemSwitches(int curState, byte switchHit)
 
 void ToggleTopSaucerArrow()
 {
-    if (BallState.topArrowState == LEFT_ARROW_SINGLE)
+    if (BallState.topArrowState == RIGHT_ARROW_LIT)
     {
-        BallState.topArrowState = RIGHT_ARROW_SINGLE;
-    }
-    else if (BallState.topArrowState == RIGHT_ARROW_SINGLE)
+        BallState.topArrowState = LEFT_ARROW_LIT;
+    } 
+    else 
     {
-        BallState.topArrowState = LEFT_ARROW_DOUBLE;
+        BallState.topArrowState = RIGHT_ARROW_LIT;
     }
-    else if (BallState.topArrowState == LEFT_ARROW_DOUBLE)
-    {
-        BallState.topArrowState = RIGHT_ARROW_DOUBLE;
-    }
-    else
-    {
-        BallState.topArrowState = LEFT_ARROW_SINGLE;
-    }
+
+    PlayerState[CurrentPlayer].doubleBonusLit = !PlayerState[CurrentPlayer].doubleBonusLit;
 }
 
 void CheckForCompleteABCDEF()
@@ -3155,26 +3136,21 @@ void HandleGamePlaySwitches(byte switchHit)
         AddToBonusLane(3, BONUS_LANE_BOTH);
         switch (BallState.topArrowState)
         {
-        case LEFT_ARROW_SINGLE:
+        case LEFT_ARROW_LIT:
             BallState.collectLit[BONUS_LANE_LEFT] = true;
             break;
 
-        case RIGHT_ARROW_SINGLE:
+        case RIGHT_ARROW_LIT:
             BallState.collectLit[BONUS_LANE_RIGHT] = true;
-            break;
-
-        case LEFT_ARROW_DOUBLE:
-            BallState.collectLit[BONUS_LANE_LEFT] = true;
-            BallState.doubleBonus = true;
-            break;
-
-        case RIGHT_ARROW_DOUBLE:
-            BallState.collectLit[BONUS_LANE_RIGHT] = true;
-            BallState.doubleBonus = true;
             break;
 
         default:
         break;
+        }
+
+        if (PlayerState[CurrentPlayer].doubleBonusLit)
+        {
+            BallState.doubleBonus = true;
         }
 
         PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
