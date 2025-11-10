@@ -493,7 +493,7 @@ void setup()
     DropTargets.DefineResetSolenoid(0, SOL_DROP_TARGET_RESET);
 
     Audio.SetMusicDuckingGain(12);
-    Audio.QueueSound(SOUND_EFFECT_WELCOME_RACE_FANS, AUDIO_PLAY_TYPE_WAV_TRIGGER, CurrentTime + 4000);
+    Audio.QueueSound(SOUND_EFFECT_GAME_START, AUDIO_PLAY_TYPE_WAV_TRIGGER, CurrentTime + 4000);
 }
 
 byte ReadSetting(byte setting, byte defaultValue)
@@ -1097,7 +1097,7 @@ boolean AddPlayer(boolean resetNumPlayers = false)
     }
     if (CurrentNumPlayers == 1) Audio.StopAllAudio();
     
-    QueueNotification(SOUND_EFFECT_GAME_START, 10);
+    QueueNotification(SOUND_EFFECT_WELCOME_RACE_FANS, 10);
     
     RPU_WriteULToEEProm(RPU_TOTAL_PLAYS_EEPROM_START_BYTE, RPU_ReadULFromEEProm(RPU_TOTAL_PLAYS_EEPROM_START_BYTE) + 1);
 
