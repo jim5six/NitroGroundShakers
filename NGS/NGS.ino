@@ -237,7 +237,7 @@ enum PlayfieldLetters
 
 struct NGSBallState
 {
-    unsigned long laneBonus[BONUS_LANE_COUNT];
+    byte laneBonus[BONUS_LANE_COUNT];
     boolean collectLit[BONUS_LANE_COUNT];
     boolean doubleBonus;
     boolean spinnerLit;
@@ -269,6 +269,10 @@ boolean ExtraBallCollected = false;
 boolean SpecialCollected = false;
 boolean TimersPaused = true;
 boolean AllowResetAfterBallOne = true;
+
+unsigned long BonusIncreaseTickTime = 0;
+const unsigned long BonusTickDelayMs = 300;
+byte BonusToTick = 0;
 
 unsigned long CurrentScores[4];
 unsigned long BallFirstSwitchHitTime = 0;
@@ -2072,7 +2076,40 @@ void AddToBonus(byte bonus)
 
 void AddToBonusLane(byte amount, BonusLanes whichLane)
 {
-    BallState.laneBonus[whichLane] += amount;
+    if (whichLane == BONUS_LANE_COUNT) 
+    {
+        return;
+    }
+    else if (whichLane == BONUS_LANE_BOTH)
+    {
+        BallState.laneBonus[BONUS_LANE_LEFT] += amount;
+        BallState.laneBonus[BONUS_LANE_RIGHT] += amount;
+    }
+    else
+    {
+        BallState.laneBonus[whichLane] += amount;
+    }
+}
+
+void AddToBonusLanesDelayed(byte amount)
+{
+    BonusIncreaseTickTime = CurrentTime + BonusTickDelayMs;
+    BonusToTick = amount;
+}
+
+void CheckForDelayedBonus()
+{
+    if (BonusIncreaseTickTime != 0 && BonusToTick > 0 && CurrentTime >= BonusIncreaseTickTime)
+    {
+        AddToBonusLane(1, BONUS_LANE_BOTH);
+        BonusIncreaseTickTime = CurrentTime + BonusTickDelayMs;
+        BonusToTick--;
+
+        if (BonusToTick == 0)
+        {
+            BonusIncreaseTickTime = 0;
+        }
+    }
 }
 
 void IncreaseBonusX()
@@ -2340,6 +2377,7 @@ int ManageGameMode()
 
     ShowPlayfieldLamps();
     UpdateDropTargets();
+    CheckForDelayedBonus();
 
     if ((CurrentTime - LastSwitchHitTime) > 3000)
         TimersPaused = true;
@@ -3114,7 +3152,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_TARGET_ADVANCE_LR_BONUS:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
-        AddToBonusLane(3, BONUS_LANE_BOTH);
+        AddToBonusLanesDelayed(3);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3124,7 +3162,7 @@ void HandleGamePlaySwitches(byte switchHit)
         CurrentScores[CurrentPlayer] += 1000;
         BallState.spinnerLit = true;
         RPU_SetLampState(LAMP_POP_BUMPER, 1, 0, 0);
-        AddToBonusLane(3, BONUS_LANE_BOTH);
+        AddToBonusLanesDelayed(3);
         switch (BallState.topArrowState)
         {
         case LEFT_ARROW_LIT:
