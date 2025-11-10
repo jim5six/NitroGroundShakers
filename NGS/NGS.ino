@@ -167,7 +167,7 @@ unsigned short SelfTestStateToCalloutMap[34] = {134, 135, 133, 136, 137, 138, 13
 #define SOUND_EFFECT_DIAG_PROBLEM_PIA_5 1913
 #define SOUND_EFFECT_DIAG_STARTING_DIAGNOSTICS 1914
 
-#define MAX_DISPLAY_BONUS 20
+#define MAX_DISPLAY_BONUS 29
 #define TILT_WARNING_DEBOUNCE_TIME 1000
 
 /*********************************************************************
@@ -584,6 +584,41 @@ void ShowNitroBonusLamps()
 
 void ShowBonusLamps()
 {
+    for (int i = 0; i < 11; i++)
+    {
+        RPU_SetLampState(LAMP_BONUS_L1 + i, 0, 0, 0);
+        RPU_SetLampState(LAMP_BONUS_R1 + i, 0, 0, 0);
+    }
+
+    if (BallState.laneBonus[BONUS_LANE_LEFT] >= 20) 
+    {
+        RPU_SetLampState(LAMP_BONUS_L20, 1, 0, 0);
+    }
+    else if (BallState.laneBonus[BONUS_LANE_LEFT] >= 10 && BallState.laneBonus[BONUS_LANE_LEFT] < 20)
+    {
+        RPU_SetLampState(LAMP_BONUS_L10, 1, 0, 0);
+    }
+
+    if (BallState.laneBonus[BONUS_LANE_LEFT] % 10 != 0)
+    {
+        byte offset = (BallState.laneBonus[BONUS_LANE_LEFT] % 10) - 1;
+        RPU_SetLampState(LAMP_BONUS_R1 + offset, 1, 0, 0);
+    }
+
+    if (BallState.laneBonus[BONUS_LANE_RIGHT] >= 20) 
+    {
+        RPU_SetLampState(LAMP_BONUS_R20, 1, 0, 0);
+    }
+    else if (BallState.laneBonus[BONUS_LANE_RIGHT] >= 10 && BallState.laneBonus[BONUS_LANE_RIGHT] < 20)
+    {
+        RPU_SetLampState(LAMP_BONUS_R10, 1, 0, 0);
+    }
+
+    if (BallState.laneBonus[BONUS_LANE_RIGHT] % 10 != 0)
+    {
+        byte offset = (BallState.laneBonus[BONUS_LANE_RIGHT] % 10) - 1;
+        RPU_SetLampState(LAMP_BONUS_R1 + offset, 1, 0, 0);
+    }
 }
 
 void ShowBonusXLamps()
@@ -646,6 +681,7 @@ void ShowShootAgainLamps()
 // Top level function for managing all normal lamps during unstructured play
 void ShowPlayfieldLamps()
 {
+    ShowBonusLamps();
     ShowTopArrowLamps();
     ShowLeftSaucerLamps();
     ShowNitroBonusLamps();
@@ -2082,12 +2118,34 @@ void AddToBonusLane(byte amount, BonusLanes whichLane)
     }
     else if (whichLane == BONUS_LANE_BOTH)
     {
-        BallState.laneBonus[BONUS_LANE_LEFT] += amount;
-        BallState.laneBonus[BONUS_LANE_RIGHT] += amount;
+        if (BallState.laneBonus[BONUS_LANE_LEFT] + amount < MAX_DISPLAY_BONUS)
+        {
+            BallState.laneBonus[BONUS_LANE_LEFT] += amount;
+        }
+        else
+        {
+            BallState.laneBonus[BONUS_LANE_LEFT] = MAX_DISPLAY_BONUS;
+        }
+
+        if (BallState.laneBonus[BONUS_LANE_RIGHT] + amount < MAX_DISPLAY_BONUS)
+        {
+            BallState.laneBonus[BONUS_LANE_RIGHT] += amount;
+        }
+        else
+        {
+            BallState.laneBonus[BONUS_LANE_RIGHT] = MAX_DISPLAY_BONUS;
+        }
     }
     else
     {
-        BallState.laneBonus[whichLane] += amount;
+        if (BallState.laneBonus[whichLane] + amount < MAX_DISPLAY_BONUS)
+        {
+            BallState.laneBonus[whichLane] += amount;
+        }
+        else
+        {
+            BallState.laneBonus[whichLane] = MAX_DISPLAY_BONUS;
+        }
     }
 }
 
