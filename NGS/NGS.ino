@@ -132,15 +132,9 @@ unsigned short SelfTestStateToCalloutMap[34] = {134, 135, 133, 136, 137, 138, 13
 #define SOUND_EFFECT_SELF_TEST_CPC_START 180
 #define SOUND_EFFECT_SELF_TEST_AUDIO_OPTIONS_START 190
 
-#define SOUND_EFFECT_BACKGROUND_SONG_1 10
-#define NUM_BACKGROUND_SONGS 1
-#define SOUND_EFFECT_BATTLE_SONG_1 525
-#define NUM_BATTLE_SONGS 3
-
-// Game play status callouts
+// Game play callouts
 #define NUM_VOICE_NOTIFICATIONS 7
 
-//Game Call Outs
 #define SOUND_EFFECT_VP_VOICE_NOTIFICATIONS_START 300
 #define SOUND_EFFECT_BALL_START 300
 #define SOUND_EFFECT_BALL_SAVE  301
@@ -609,10 +603,7 @@ void ShowBonusLamps()
 
 void ShowBonusXLamps()
 {
-}
-
-void ShowStandupLamps()
-{
+    RPU_SetLampState(LAMP_DOUBLE_BONUS_BOTTOM, 1, 0, 0);
 }
 
 void ShowABCDEFLamps()
@@ -676,22 +667,6 @@ void ShowPlayfieldLamps()
 
     RPU_SetLampState(LAMP_BONUS_SPINNER, (BallState.spinnerLit ? 1 : 0), 0, 0);
 }
-
-/*
-boolean RequestedGIState;
-unsigned long GIOverrideEndTime;
-
-void SetGeneralIlluminationOn(boolean generalIlluminationOn = true) {
-  RequestedGIState = generalIlluminationOn;
-  if (GIOverrideEndTime) return;
-  RPU_SetContinuousSolenoid(!generalIlluminationOn, SOL_GI_RELAY);
-}
-
-void OverrideGeneralIllumination(boolean generalIlluminationOn, unsigned long endTime) {
-  GIOverrideEndTime = endTime;
-  RPU_SetContinuousSolenoid(!generalIlluminationOn, SOL_GI_RELAY);
-}
-*/
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -1112,11 +1087,6 @@ boolean AddPlayer(boolean resetNumPlayers = false)
     CurrentNumPlayers += 1;
     RPU_SetDisplay(CurrentNumPlayers - 1, 0, true, 2);
     RPU_SetDisplayBlank(CurrentNumPlayers - 1, 0x30);
-
-    RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP, CurrentNumPlayers==1, 0, 500);
-    RPU_SetLampState(LAMP_HEAD_PLAYER_2_UP, CurrentNumPlayers==2, 0, 500);
-    RPU_SetLampState(LAMP_HEAD_PLAYER_3_UP, CurrentNumPlayers==3, 0, 500);
-    RPU_SetLampState(LAMP_HEAD_PLAYER_4_UP, CurrentNumPlayers==4, 0, 500);
 
     if (!FreePlayMode)
     {
@@ -1938,7 +1908,7 @@ int RunAttractMode(int curState, boolean curStateChanged)
         RPU_SetDisplayCredits(Credits, !FreePlayMode);
         for (byte count = 0; count < 4; count++)
         {
-            //      RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, 0);
+            RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, 0);
         }
 
         //    RPU_SetLampState(LAMP_HEAD_1_PLAYER, 0);
@@ -2252,6 +2222,7 @@ int InitNewBall(bool curStateChanged)
         SamePlayerShootsAgain = false;
 
         RPU_SetDisplayBallInPlay(CurrentBallInPlay);
+        RPU_SetLampState(LAMP_HEAD_BIP, 0);
         RPU_SetLampState(LAMP_HEAD_TILT, 0);
 
         if (BallSaveNumSeconds > 0)
@@ -2436,7 +2407,6 @@ int ManageGameMode()
     {
         ShowDropTargetLamps();
         ShowBonusXLamps();
-        ShowStandupLamps();
         ShowShootAgainLamps();
     }
 
@@ -2519,7 +2489,7 @@ int ManageGameMode()
         {
             for (byte count = 0; count < 4; count++)
             {
-                //        RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, (((CurrentTime / 250) % 2) == 0 || CurrentPlayer != count) ? false : true);
+                RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, (((CurrentTime / 250) % 2) == 0 || CurrentPlayer != count) ? false : true);
                 //        RPU_SetLampState(LAMP_HEAD_1_PLAYER + count, ((count+1)==CurrentNumPlayers) ? true : false);
             }
         }
@@ -2527,7 +2497,7 @@ int ManageGameMode()
         {
             for (byte count = 0; count < 4; count++)
             {
-                //        RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, (CurrentPlayer == count) ? true : false);
+                RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, (CurrentPlayer == count) ? true : false);
                 //        RPU_SetLampState(LAMP_HEAD_1_PLAYER + count, ((count+1)==CurrentNumPlayers) ? true : false);
             }
         }
