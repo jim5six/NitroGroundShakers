@@ -44,14 +44,14 @@
 #define LAMP_DOUBLE_BONUS_TOP               39
 #define LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN  40
 #define LAMP_SHOOT_AGAIN                    40
-#define LAMP_HEAD_BIP                       41
+#define LAMP_HEAD_MATCH                     41
 #define LAMP_DOUBLE_BONUS_BOTTOM            42
 #define LAMP_APRON_CREDIT                   43
 #define LAMP_SUPER_BONUS                    44
 #define LAMP_NITRO_BONUS                    45
 #define LAMP_ARROW_ADD_LR_BONUS             46
 #define LAMP_POP_BUMPER                     47
-#define LAMP_HEAD_MATCH                     48 //?
+#define LAMP_HEAD_BIP                       48
 #define LAMP_HEAD_HIGH_SCORE                49
 #define LAMP_HEAD_GAME_OVER                 50
 #define LAMP_HEAD_TILT                      51
