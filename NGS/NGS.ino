@@ -2323,11 +2323,12 @@ void ResetBallState()
 {
     BallState.laneBonus[BONUS_LANE_LEFT] = 1;
     BallState.laneBonus[BONUS_LANE_RIGHT] = 1;
+    BallState.collectLit[BONUS_LANE_RIGHT] = 0;
+    BallState.collectLit[BONUS_LANE_RIGHT] = 0;
     BallState.doubleBonus = false;
     BallState.spinnerLit = false;
-
-    BallState.dropTargetBanksCompleted = 0;
     BallState.specialLit = false;
+    BallState.dropTargetBanksCompleted = 0;
     BallState.topArrowState = RIGHT_ARROW_LIT;
 }
 
@@ -3249,7 +3250,7 @@ void HandleGamePlaySwitches(byte switchHit)
         {
             CurrentScores[CurrentPlayer] += 1000;
         }
-        
+
         BallState.spinnerLit = true;
         RPU_SetLampState(LAMP_POP_BUMPER, 1, 0, 0);
         AddToBonusLanesDelayed(3);
