@@ -236,7 +236,6 @@ struct NGSBallState
     boolean doubleBonus;
     boolean spinnerLit;
     boolean specialLit;
-    unsigned long dropTargetBanksCompleted;
     TopSaucerArrowState topArrowState;
 };
 
@@ -245,6 +244,7 @@ struct NGSPlayerState
     boolean letterLit[LETTER_COUNT];
     boolean doubleBonusLit;
     byte sixLetterComplete;
+    unsigned long dropTargetBanksCompleted;
 };
 
 // NGSGameState GameState;
@@ -655,19 +655,19 @@ void ShowABCDEFLamps()
 
 void ShowDropTargetLamps()
 {
-    if (BallState.dropTargetBanksCompleted == 0)
+    if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 0)
     {
         RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 0, 0, 0);
         RPU_SetLampState(LAMP_EXTRABALL, 0, 0, 0);
         RPU_SetLampState(LAMP_DROP_TARGET_5000, 1, 0, 0);
     }
-    if (BallState.dropTargetBanksCompleted == 1)
+    if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 1)
     {
         RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 0, 0, 0);
         RPU_SetLampState(LAMP_EXTRABALL, 1, 0, 0);
         RPU_SetLampState(LAMP_DROP_TARGET_5000, 0, 0, 0);
     }
-    if (BallState.dropTargetBanksCompleted >= 2)
+    if (PlayerState[CurrentPlayer].dropTargetBanksCompleted >= 2)
     {
         RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 1, 0, 0);
         RPU_SetLampState(LAMP_EXTRABALL, 0, 0, 0);
@@ -2198,6 +2198,7 @@ int InitGamePlay(boolean curStateChanged)
 {
     RPU_TurnOffAllLamps();
     SetGeneralIlluminationOn(true);
+    ResetPlayerStates();
 
     if (curStateChanged)
     {
@@ -2288,6 +2289,23 @@ int InitGamePlay(boolean curStateChanged)
     return MACHINE_STATE_INIT_NEW_BALL;
 }
 
+void ResetPlayerStates()
+{
+    for (int i = 0; i < 4; i++)
+    {
+        PlayerState[CurrentPlayer].letterLit[LETTER_A] = false;
+        PlayerState[CurrentPlayer].letterLit[LETTER_B] = false;
+        PlayerState[CurrentPlayer].letterLit[LETTER_C] = false;     
+        PlayerState[CurrentPlayer].letterLit[LETTER_D] = false;
+        PlayerState[CurrentPlayer].letterLit[LETTER_E] = false;
+        PlayerState[CurrentPlayer].letterLit[LETTER_F] = false;
+    }
+
+    PlayerState[CurrentPlayer].doubleBonusLit = false;
+    PlayerState[CurrentPlayer].sixLetterComplete = false;
+    PlayerState[CurrentPlayer].dropTargetBanksCompleted = 0;
+}
+
 // Reset all the bonuses and lights that should be new for each ball
 void ResetBallState()
 {
@@ -2298,15 +2316,12 @@ void ResetBallState()
     BallState.doubleBonus = false;
     BallState.spinnerLit = false;
     BallState.specialLit = false;
-    BallState.dropTargetBanksCompleted = 0;
     BallState.topArrowState = RIGHT_ARROW_LIT;
 }
 
 int InitNewBall(bool curStateChanged)
 
 {
-
-
     // If we're coming into this mode for the first time
     // then we have to do everything to set up the new ball
     if (curStateChanged)
@@ -3044,12 +3059,12 @@ void HandleDropTarget(byte switchHit)
     {
         PlaySoundEffect(SOUND_EFFECT_FAN_CHEER);
         DropTargets.ResetDropTargets(CurrentTime + 1000, true);
-        BallState.dropTargetBanksCompleted += 1;
-        if (BallState.dropTargetBanksCompleted == 1)
+        PlayerState[CurrentPlayer].dropTargetBanksCompleted += 1;
+        if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 1)
         {
             CurrentScores[CurrentPlayer] += 5000;
         }
-        if (BallState.dropTargetBanksCompleted == 2)
+        if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 2)
         {
             AwardExtraBall();
         }
