@@ -271,7 +271,7 @@ boolean TimersPaused = true;
 boolean AllowResetAfterBallOne = true;
 
 unsigned long BonusIncreaseTickTime = 0;
-const unsigned long BonusTickDelayMs = 300;
+const unsigned long BonusTickDelayMs = 500;
 byte BonusToTick = 0;
 
 unsigned long CurrentScores[4];
@@ -2172,6 +2172,7 @@ void CheckForDelayedBonus()
     if (BonusIncreaseTickTime != 0 && BonusToTick > 0 && CurrentTime >= BonusIncreaseTickTime)
     {
         AddToBonusLane(1, BONUS_LANE_BOTH);
+        PlaySoundEffect(SOUND_EFFECT_SPINNER);
         BonusIncreaseTickTime = CurrentTime + BonusTickDelayMs;
         BonusToTick--;
 
@@ -3222,7 +3223,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_TARGET_ADVANCE_LR_BONUS:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
-        AddToBonusLanesDelayed(3);
+        AddToBonusLane(1, BONUS_LANE_BOTH);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3253,7 +3254,7 @@ void HandleGamePlaySwitches(byte switchHit)
         }
 
         PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
-        RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 7000, true);
+        RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 3000, true);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3262,8 +3263,8 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_LEFT_SAUCER:
         CurrentScores[CurrentPlayer] += 1000;
         PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
-        AddToBonusLane(3, BONUS_LANE_BOTH);
-        RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 7000, true);
+        AddToBonusLanesDelayed(3);
+        RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 3000, true);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
