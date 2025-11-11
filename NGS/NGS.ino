@@ -549,9 +549,20 @@ void SetGeneralIlluminationOn(boolean setGIOn = true)
 
 void ShowTopArrowLamps()
 {
-    RPU_SetLampState(LAMP_TOP_ARROW_LEFT, (BallState.topArrowState == LEFT_ARROW_LIT ? 1 : 0), 0, 0);
-    RPU_SetLampState(LAMP_TOP_ARROW_RIGHT, (BallState.topArrowState == RIGHT_ARROW_LIT ? 1 : 0), 0, 0);
     RPU_SetLampState(LAMP_DOUBLE_BONUS_TOP, (PlayerState[CurrentPlayer].doubleBonusLit ? 1 : 0), 0, 0);
+
+    if (BallState.collectLit[BONUS_LANE_LEFT] && BallState.collectLit[BONUS_LANE_RIGHT]) 
+    {
+        RPU_SetLampState(LAMP_TOP_ARROW_CENTER, 1, 0, 0);
+        RPU_SetLampState(LAMP_TOP_ARROW_LEFT, 0, 0, 0);
+        RPU_SetLampState(LAMP_TOP_ARROW_RIGHT, 0, 0, 0);
+    }
+    else
+    {
+        RPU_SetLampState(LAMP_TOP_ARROW_CENTER, 0, 0, 0);
+        RPU_SetLampState(LAMP_TOP_ARROW_LEFT, (BallState.topArrowState == LEFT_ARROW_LIT ? 1 : 0), 0, 0);
+        RPU_SetLampState(LAMP_TOP_ARROW_RIGHT, (BallState.topArrowState == RIGHT_ARROW_LIT ? 1 : 0), 0, 0);
+    }
 }
 
 void ShowLeftSaucerLamps()
@@ -3230,7 +3241,15 @@ void HandleGamePlaySwitches(byte switchHit)
         break;
 
     case SW_CENTER_SAUCER:
-        CurrentScores[CurrentPlayer] += 1000;
+        if (BallState.collectLit[BONUS_LANE_LEFT] && BallState.collectLit[BONUS_LANE_RIGHT])
+        {
+            CurrentScores[CurrentPlayer] += 5000;
+        }
+        else
+        {
+            CurrentScores[CurrentPlayer] += 1000;
+        }
+        
         BallState.spinnerLit = true;
         RPU_SetLampState(LAMP_POP_BUMPER, 1, 0, 0);
         AddToBonusLanesDelayed(3);
