@@ -2688,6 +2688,7 @@ int ManageGameMode()
     return returnState;
 }
 
+
 unsigned long CountdownStartTime = 0;
 unsigned long LastCountdownReportTime = 0;
 unsigned long BonusCountDownEndTime = 0;
@@ -2696,10 +2697,109 @@ byte IncrementingBonusXCounter;
 byte TotalBonus = 0;
 byte TotalBonusX = 0;
 boolean CountdownBonusHurryUp = false;
+boolean DoingBonusCountdown = false;
+byte BonusOnCountdownStart[BONUS_LANE_COUNT] = {0};
+BonusLanes BonusCountPhase = BONUS_LANE_RIGHT; //Original code count always does right side first
+const unsigned long BonusCountdownDelayMs = 100;
+unsigned long BonusCountdownTickTime = 0;
+boolean CountBonusAgain = false; //Whether the next bonus lane should be counted again when done (double bonus)
 
 int CountDownDelayTimes[] = {175, 130, 105, 90, 80, 70, 60, 40, 30, 20};
 
-int CountdownBonus(boolean curStateChanged)
+boolean BonusIsCounting()
+{
+    return BonusCountdownTickTime != 0;
+}
+
+void StartBonusCountdown()
+{
+    BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
+    BonusCountPhase = BONUS_LANE_RIGHT;
+    CountBonusAgain = BallState.doubleBonus;
+    BonusOnCountdownStart[BONUS_LANE_LEFT] = BallState.laneBonus[BONUS_LANE_LEFT];
+    BonusOnCountdownStart[BONUS_LANE_RIGHT] = BallState.laneBonus[BONUS_LANE_RIGHT];
+}
+
+boolean CountdownBonus(boolean isEndOfBall)
+{
+    boolean doneCounting = false; 
+
+    if (isEndOfBall)
+    {
+        ShowBonusLamps();
+    }
+
+    if (BonusIsCounting())
+    {
+        // If it's time to tick down the bonus
+        if (CurrentTime >= BonusCountdownTickTime)
+        {
+            if (BonusCountPhase == BONUS_LANE_RIGHT)
+            {
+                BallState.laneBonus[BONUS_LANE_RIGHT]--;
+                CurrentScores[CurrentPlayer] += 1000;
+                if (BallState.laneBonus[BONUS_LANE_RIGHT] == 0)
+                {
+                    // If double bonus was lit and we've only scored bonus once, do it again for this side
+                    if (CountBonusAgain)
+                    {
+                        CountBonusAgain = false;
+                        BallState.laneBonus[BONUS_LANE_RIGHT] = BonusOnCountdownStart[BONUS_LANE_RIGHT];
+                    }
+                    else
+                    {
+                        // Right bonus is done counting, switch to left
+                        // left bonus should never be 0, but check just in case...
+                        if (BallState.laneBonus[BONUS_LANE_LEFT] > 0)
+                        {
+                            BonusCountPhase = BONUS_LANE_LEFT;
+                            BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
+                            CountBonusAgain = BallState.doubleBonus;
+                        }
+                        else
+                        {
+                            doneCounting = true;
+                            BonusCountdownTickTime = 0;
+                        }
+                    } 
+                }
+                else
+                {
+                    // Right bonus still counting
+                    BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
+                }
+            }
+            else
+            {
+                BallState.laneBonus[BONUS_LANE_LEFT]--;
+                CurrentScores[CurrentPlayer] += 1000;
+                if (BallState.laneBonus[BONUS_LANE_LEFT] == 0)
+                {
+                    // If double bonus was lit and we've only scored bonus once, do it again for this side
+                    if (CountBonusAgain)
+                    {
+                        CountBonusAgain = false;
+                        BallState.laneBonus[BONUS_LANE_LEFT] = BonusOnCountdownStart[BONUS_LANE_LEFT];
+                    }
+                    else
+                    {
+                        doneCounting = true;
+                        BonusCountdownTickTime = 0;
+                    } 
+                }
+                else
+                {
+                    // Left bonus still counting
+                    BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
+                }
+            }
+        }
+    }
+
+    return doneCounting;
+}
+
+int BallEndCountdownBonus(boolean curStateChanged)
 {
 
     // If this is the first time through the countdown loop
@@ -2708,8 +2808,6 @@ int CountdownBonus(boolean curStateChanged)
 
         CountdownStartTime = CurrentTime;
         LastCountdownReportTime = CurrentTime;
-        ShowBonusXLamps();
-        ShowBonusLamps();
         IncrementingBonusXCounter = 1;
         DecrementingBonusCounter = Bonus[CurrentPlayer];
         TotalBonus = Bonus[CurrentPlayer];
@@ -3308,7 +3406,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged)
     }
     else if (curState == MACHINE_STATE_COUNTDOWN_BONUS)
     {
-        returnState = CountdownBonus(curStateChanged);
+        returnState = BallEndCountdownBonus(curStateChanged);
         ShowPlayerScores(0xFF, false, false);
     }
     else if (curState == MACHINE_STATE_BALL_OVER)
