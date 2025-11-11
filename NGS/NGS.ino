@@ -264,9 +264,18 @@ boolean SpecialCollected = false;
 boolean TimersPaused = true;
 boolean AllowResetAfterBallOne = true;
 
+//Variables for bonus countup
+boolean CollectAfterBonusAdd = false; //Whether bonus collect should be triggered after adding bonus
 unsigned long BonusIncreaseTickTime = 0;
 const unsigned long BonusTickDelayMs = 500;
 byte BonusToTick = 0;
+
+//Variables for bonus countdown
+byte BonusOnCountdownStart[BONUS_LANE_COUNT] = {0};
+BonusLanes BonusCountPhase = BONUS_LANE_RIGHT; //Original code count always does right side first
+const unsigned long BonusCountdownDelayMs = 100;
+unsigned long BonusCountdownTickTime = 0;
+boolean CountBonusAgain = false; //Whether the next bonus lane should be counted again when done (double bonus)
 
 unsigned long CurrentScores[4];
 unsigned long BallFirstSwitchHitTime = 0;
@@ -2143,20 +2152,25 @@ void AddToBonusLanesDelayed(byte amount)
     BonusToTick = amount;
 }
 
-void CheckForDelayedBonus()
+boolean CheckForDelayedBonus()
 {
+    boolean justFinished = false;
+
     if (BonusIncreaseTickTime != 0 && BonusToTick > 0 && CurrentTime >= BonusIncreaseTickTime)
     {
         AddToBonusLane(1, BONUS_LANE_BOTH);
         PlaySoundEffect(SOUND_EFFECT_SPINNER);
-        BonusIncreaseTickTime = CurrentTime + BonusTickDelayMs;
+        BonusIncreaseTickTime = CurrentTime + BonusTickDelayMs + 300; //Add a little extra delay right before the start
         BonusToTick--;
 
         if (BonusToTick == 0)
         {
+            justFinished = true;
             BonusIncreaseTickTime = 0;
         }
     }
+
+    return justFinished;
 }
 
 void IncreaseBonusX()
@@ -2312,6 +2326,10 @@ void ResetBallState()
     BallState.spinnerLit = false;
     BallState.specialLit = false;
     BallState.topArrowState = RIGHT_ARROW_LIT;
+
+    BonusIncreaseTickTime = 0;
+    BonusCountdownTickTime = 0;
+    CollectAfterBonusAdd = false;
 }
 
 int InitNewBall(bool curStateChanged)
@@ -2421,12 +2439,6 @@ void UpdateDropTargets()
 {
     DropTargets.Update(CurrentTime);
 }
-
-byte BonusOnCountdownStart[BONUS_LANE_COUNT] = {0};
-BonusLanes BonusCountPhase = BONUS_LANE_RIGHT; //Original code count always does right side first
-const unsigned long BonusCountdownDelayMs = 100;
-unsigned long BonusCountdownTickTime = 0;
-boolean CountBonusAgain = false; //Whether the next bonus lane should be counted again when done (double bonus)
 
 boolean BonusIsCounting()
 {
@@ -2550,13 +2562,20 @@ int ManageGameMode()
 
     ShowPlayfieldLamps();
     UpdateDropTargets();
-    CheckForDelayedBonus();
+    
+    boolean finishedAddingBonus = CheckForDelayedBonus();
+
+    if (finishedAddingBonus && CollectAfterBonusAdd)
+    {
+        CollectAfterBonusAdd = false;
+        StartBonusCountdown();
+    }
 
     if (BonusIsCounting())
     {
         //Bonus is counting if we recently hit the left saucer and bonus collect was lit, so handle that countdown
-        boolean finished = CountdownBonus();
-        if (finished)
+        boolean countdownFinished = CountdownBonus();
+        if (countdownFinished)
         {
             //If we just finished scoring a bonus collect, kick out from saucer
             RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 200, true);
@@ -3315,7 +3334,7 @@ void HandleGamePlaySwitches(byte switchHit)
 
         if (BallState.collectLit[BONUS_LANE_LEFT] || BallState.collectLit[BONUS_LANE_RIGHT])
         {
-            StartBonusCountdown();
+            CollectAfterBonusAdd = true;
         }
         else
         {
