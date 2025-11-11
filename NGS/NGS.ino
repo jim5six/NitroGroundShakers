@@ -638,11 +638,6 @@ void ShowBonusLamps()
     }
 }
 
-void ShowBonusXLamps()
-{
-    RPU_SetLampState(LAMP_DOUBLE_BONUS_BOTTOM, 1, 0, 0);
-}
-
 void ShowABCDEFLamps()
 {
     RPU_SetLampState(LAMP_A, (PlayerState[CurrentPlayer].letterLit[LETTER_A] ? 1 : 0), 0, 0);
@@ -2640,7 +2635,6 @@ int ManageGameMode()
     if (!specialAnimationRunning && NumTiltWarnings <= MaxTiltWarnings)
     {
         ShowDropTargetLamps();
-        ShowBonusXLamps();
         ShowShootAgainLamps();
     }
 
