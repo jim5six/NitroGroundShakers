@@ -502,7 +502,7 @@ void setup()
     DropTargets.DefineResetSolenoid(0, SOL_DROP_TARGET_RESET);
 
     Audio.SetMusicDuckingGain(12);
-    Audio.QueueSound(SOUND_EFFECT_WELCOME_RACE_FANS, AUDIO_PLAY_TYPE_WAV_TRIGGER, CurrentTime + 4000);
+    Audio.QueueSound(SOUND_EFFECT_GAME_START, AUDIO_PLAY_TYPE_WAV_TRIGGER, CurrentTime + 4000);
 }
 
 byte ReadSetting(byte setting, byte defaultValue)
@@ -584,40 +584,52 @@ void ShowNitroBonusLamps()
 
 void ShowBonusLamps()
 {
-    for (int i = 0; i < 11; i++)
-    {
-        RPU_SetLampState(LAMP_BONUS_L1 + i, 0, 0, 0);
-        RPU_SetLampState(LAMP_BONUS_R1 + i, 0, 0, 0);
-    }
-
     if (BallState.laneBonus[BONUS_LANE_LEFT] >= 20) 
     {
         RPU_SetLampState(LAMP_BONUS_L20, 1, 0, 0);
+        RPU_SetLampState(LAMP_BONUS_L10, 0, 0, 0);
     }
     else if (BallState.laneBonus[BONUS_LANE_LEFT] >= 10 && BallState.laneBonus[BONUS_LANE_LEFT] < 20)
     {
+        RPU_SetLampState(LAMP_BONUS_L20, 0, 0, 0);
         RPU_SetLampState(LAMP_BONUS_L10, 1, 0, 0);
     }
 
-    if (BallState.laneBonus[BONUS_LANE_LEFT] % 10 != 0)
+    int offset = BallState.laneBonus[BONUS_LANE_LEFT] % 10 - 1;
+    for (int i = 0; i < 9; i++)
     {
-        byte offset = (BallState.laneBonus[BONUS_LANE_LEFT] % 10) - 1;
-        RPU_SetLampState(LAMP_BONUS_R1 + offset, 1, 0, 0);
+        if (i == offset)
+        {
+            RPU_SetLampState(LAMP_BONUS_L1 + i, 1, 0, 0);
+        }
+        else
+        {
+            RPU_SetLampState(LAMP_BONUS_L1 + i, 0, 0, 0);
+        }
     }
 
     if (BallState.laneBonus[BONUS_LANE_RIGHT] >= 20) 
     {
         RPU_SetLampState(LAMP_BONUS_R20, 1, 0, 0);
+        RPU_SetLampState(LAMP_BONUS_R10, 0, 0, 0);
     }
     else if (BallState.laneBonus[BONUS_LANE_RIGHT] >= 10 && BallState.laneBonus[BONUS_LANE_RIGHT] < 20)
     {
+        RPU_SetLampState(LAMP_BONUS_R20, 0, 0, 0);
         RPU_SetLampState(LAMP_BONUS_R10, 1, 0, 0);
     }
 
-    if (BallState.laneBonus[BONUS_LANE_RIGHT] % 10 != 0)
+    offset = BallState.laneBonus[BONUS_LANE_RIGHT] % 10 - 1;
+    for (int i = 0; i < 9; i++)
     {
-        byte offset = (BallState.laneBonus[BONUS_LANE_RIGHT] % 10) - 1;
-        RPU_SetLampState(LAMP_BONUS_R1 + offset, 1, 0, 0);
+        if (i == offset)
+        {
+            RPU_SetLampState(LAMP_BONUS_R1 + i, 1, 0, 0);
+        }
+        else
+        {
+            RPU_SetLampState(LAMP_BONUS_R1 + i, 0, 0, 0);
+        }
     }
 }
 
@@ -1144,7 +1156,7 @@ boolean AddPlayer(boolean resetNumPlayers = false)
     }
     if (CurrentNumPlayers == 1) Audio.StopAllAudio();
     
-    QueueNotification(SOUND_EFFECT_GAME_START, 10);
+    QueueNotification(SOUND_EFFECT_WELCOME_RACE_FANS, 10);
     
     RPU_WriteULToEEProm(RPU_TOTAL_PLAYS_EEPROM_START_BYTE, RPU_ReadULFromEEProm(RPU_TOTAL_PLAYS_EEPROM_START_BYTE) + 1);
 
