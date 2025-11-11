@@ -2480,6 +2480,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                     {
                         CountBonusAgain = false;
                         BallState.laneBonus[BONUS_LANE_RIGHT] = BonusOnCountdownStart[BONUS_LANE_RIGHT];
+                        BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
                     }
                     else
                     {
@@ -2515,6 +2516,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                     {
                         CountBonusAgain = false;
                         BallState.laneBonus[BONUS_LANE_LEFT] = BonusOnCountdownStart[BONUS_LANE_LEFT];
+                        BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
                     }
                     else
                     {
@@ -2807,7 +2809,7 @@ int ManageGameMode()
 }
 
 
-int BallEndCountdownBonus(boolean curStateChanged)
+int BallEndCountdownBonusState(boolean curStateChanged)
 {
     // If this is the first time through the countdown loop
     if (curStateChanged)
@@ -3363,7 +3365,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged)
     }
     else if (curState == MACHINE_STATE_COUNTDOWN_BONUS)
     {
-        returnState = BallEndCountdownBonus(curStateChanged);
+        returnState = BallEndCountdownBonusState(curStateChanged);
         ShowPlayerScores(0xFF, false, false);
     }
     else if (curState == MACHINE_STATE_BALL_OVER)
