@@ -267,7 +267,7 @@ boolean AllowResetAfterBallOne = true;
 //Variables for bonus countup
 boolean CollectAfterBonusAdd = false; //Whether bonus collect should be triggered after adding bonus
 unsigned long BonusIncreaseTickTime = 0;
-const unsigned long BonusTickDelayMs = 500;
+const unsigned long BonusTickDelayMs = 300;
 byte BonusToTick = 0;
 
 //Variables for bonus countdown
