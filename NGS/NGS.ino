@@ -2330,7 +2330,7 @@ void ResetBallState()
 {
     BallState.laneBonus[BONUS_LANE_LEFT] = 1;
     BallState.laneBonus[BONUS_LANE_RIGHT] = 1;
-    BallState.collectLit[BONUS_LANE_RIGHT] = 0;
+    BallState.collectLit[BONUS_LANE_LEFT] = 0;
     BallState.collectLit[BONUS_LANE_RIGHT] = 0;
     BallState.doubleBonus = false;
     BallState.spinnerLit = false;
