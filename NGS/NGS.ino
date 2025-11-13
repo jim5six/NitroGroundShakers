@@ -608,6 +608,11 @@ void ShowBonusLamps()
         RPU_SetLampState(LAMP_BONUS_L20, 0, 0, 0);
         RPU_SetLampState(LAMP_BONUS_L10, 1, 0, 0);
     }
+    else
+    {
+        RPU_SetLampState(LAMP_BONUS_L20, 0, 0, 0);
+        RPU_SetLampState(LAMP_BONUS_L10, 0, 0, 0);
+    }
 
     int offset = BallState.laneBonus[BONUS_LANE_LEFT] % 10 - 1;
     for (int i = 0; i < 9; i++)
@@ -631,6 +636,11 @@ void ShowBonusLamps()
     {
         RPU_SetLampState(LAMP_BONUS_R20, 0, 0, 0);
         RPU_SetLampState(LAMP_BONUS_R10, 1, 0, 0);
+    }
+    else
+    {
+        RPU_SetLampState(LAMP_BONUS_R20, 0, 0, 0);
+        RPU_SetLampState(LAMP_BONUS_R10, 0, 0, 0);
     }
 
     offset = BallState.laneBonus[BONUS_LANE_RIGHT] % 10 - 1;
