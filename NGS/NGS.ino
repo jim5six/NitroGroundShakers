@@ -2472,6 +2472,13 @@ void StartBonusCountdown(boolean isEndOfBall = false)
     }
 }
 
+//Restore L and R bonus lanes to what they were before they were scored
+void RestoreBonus()
+{
+    BallState.laneBonus[BONUS_LANE_LEFT] = BonusOnCountdownStart[BONUS_LANE_LEFT];
+    BallState.laneBonus[BONUS_LANE_RIGHT] = BonusOnCountdownStart[BONUS_LANE_RIGHT];
+}
+
 boolean CountdownBonus(boolean isEndOfBall = false)
 {
     boolean doneCounting = false; 
@@ -2589,6 +2596,7 @@ int ManageGameMode()
         {
             //If we just finished scoring a bonus collect, kick out from saucer
             RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 200, true);
+            RestoreBonus();
         }
     }
 
