@@ -104,13 +104,12 @@ boolean MachineStateChanged = true;
 
 #define SOUND_EFFECT_TILT_WARNING 28
 #define SOUND_EFFECT_MATCH_SPIN 30
-#define SOUND_EFFECT_TILT 61
-#define SOUND_EFFECT_SCORE_TICK 67
+#define SOUND_EFFECT_TILT 28 //SAME AS WARNING
+#define SOUND_EFFECT_SCORE_TICK 8  //SPINNER SOUND
 
-#define SOUND_EFFECT_COIN_DROP_1 100
-#define SOUND_EFFECT_COIN_DROP_2 101
-#define SOUND_EFFECT_COIN_DROP_3 102
-#define SOUND_EFFECT_MACHINE_START 120
+#define SOUND_EFFECT_COIN_DROP_1 100 //NO SOUND LOADED
+#define SOUND_EFFECT_COIN_DROP_2 101 //NO SOUND LOADED
+#define SOUND_EFFECT_COIN_DROP_3 102 //NO SOUND LOADED
 
 #if (RPU_MPU_ARCHITECTURE < 10) && !defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
 // This array maps the self-test modes to audio callouts
@@ -588,10 +587,16 @@ void ShowNitroBonusLamps()
         RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
     }
-    else
+    else if ((PlayerState[CurrentPlayer].sixLetterComplete == 2))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
+        RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
+    }
+    else if ((PlayerState[CurrentPlayer].sixLetterComplete >= 3))
+    {
+        RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
+        RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, 0);
     }
 }
@@ -3147,6 +3152,10 @@ void HandleDropTarget(byte switchHit)
         if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 2)
         {
             AwardExtraBall();
+        }
+        if (PlayerState[CurrentPlayer].dropTargetBanksCompleted >= 3)
+        {
+            AwardSpecial();
         }
     }
     else
