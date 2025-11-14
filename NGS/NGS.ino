@@ -2504,6 +2504,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
             {
                 BallState.laneBonus[BONUS_LANE_RIGHT]--;
                 CurrentScores[CurrentPlayer] += 1000;
+                PlaySoundEffect(SOUND_EFFECT_SCORE_TICK);
                 if (BallState.laneBonus[BONUS_LANE_RIGHT] == 0)
                 {
                     // If double bonus was lit and we've only scored bonus once, do it again for this side
@@ -2540,6 +2541,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
             {
                 BallState.laneBonus[BONUS_LANE_LEFT]--;
                 CurrentScores[CurrentPlayer] += 1000;
+                PlaySoundEffect(SOUND_EFFECT_SCORE_TICK);
                 if (BallState.laneBonus[BONUS_LANE_LEFT] == 0)
                 {
                     // If double bonus was lit and we've only scored bonus once, do it again for this side
@@ -2762,7 +2764,6 @@ int ManageGameMode()
             for (byte count = 0; count < 4; count++)
             {
                 RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, (((CurrentTime / 250) % 2) == 0 || CurrentPlayer != count) ? false : true);
-                //        RPU_SetLampState(LAMP_HEAD_1_PLAYER + count, ((count+1)==CurrentNumPlayers) ? true : false);
             }
         }
         else
@@ -2770,7 +2771,6 @@ int ManageGameMode()
             for (byte count = 0; count < 4; count++)
             {
                 RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, (CurrentPlayer == count) ? true : false);
-                //        RPU_SetLampState(LAMP_HEAD_1_PLAYER + count, ((count+1)==CurrentNumPlayers) ? true : false);
             }
         }
     }
@@ -3011,27 +3011,6 @@ int ShowMatchSequence(boolean curStateChanged)
 //  Switch Handling functions
 //
 ////////////////////////////////////////////////////////////////////////////
-/*
-// Example lock function
-
-void HandleLockSwitch(byte lockIndex) {
-
-  if (GameMode==GAME_MODE_UNSTRUCTURED_PLAY) {
-    // If this player has a lock available
-    if (PlayerLockStatus[CurrentPlayer] & (LOCK_1_AVAILABLE<<lockIndex)) {
-      // Lock the ball
-      LockBall(lockIndex);
-      SetGameMode(GAME_MODE_OFFER_LOCK);
-    } else {
-      if ((MachineLocks & (LOCK_1_ENGAGED<<lockIndex))==0) {
-        // Kick unlocked ball
-        RPU_PushToSolenoidStack(SOL_UPPER_BALL_EJECT, 12, true);
-      }
-    }
-  }
-}
-
-*/
 
 int HandleSystemSwitches(int curState, byte switchHit)
 {
