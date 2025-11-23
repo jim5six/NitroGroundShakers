@@ -95,22 +95,23 @@ boolean MachineStateChanged = true;
 #define SOUND_EFFECT_BACKGROUND1 10
 #define SOUND_EFFECT_BACKGROUND2 11
 #define SOUND_EFFECT_BACKGROUND3 12
+
 #define SOUND_EFFECT_SWITCH_HIT 15
 #define SOUND_EFFECT_TEN_POINT 16
 #define SOUND_EFFECT_TIRE_SQUEL 17
 #define SOUND_EFFECT_FAN_CHEER 18 // :08
 #define SOUND_EFFECT_DRAGSTER_FULL_RUN 19 // LONG 1:20
 #define SOUND_EFFECT_DRAGSTER_FULL_RUN_ANNOUNCER 20 // LONG 1:20
+#define SOUND_EFFECT_TIRE_SQUEL_LONG 21 // Tire Squel longer than 17
 
 #define SOUND_EFFECT_TILT_WARNING 28
 #define SOUND_EFFECT_MATCH_SPIN 30
-#define SOUND_EFFECT_TILT 61
-#define SOUND_EFFECT_SCORE_TICK 67
+#define SOUND_EFFECT_TILT 28 //SAME AS WARNING
+#define SOUND_EFFECT_SCORE_TICK 8  //SPINNER SOUND
 
-#define SOUND_EFFECT_COIN_DROP_1 100
-#define SOUND_EFFECT_COIN_DROP_2 101
-#define SOUND_EFFECT_COIN_DROP_3 102
-#define SOUND_EFFECT_MACHINE_START 120
+#define SOUND_EFFECT_COIN_DROP_1 100 //NO SOUND LOADED
+#define SOUND_EFFECT_COIN_DROP_2 101 //NO SOUND LOADED
+#define SOUND_EFFECT_COIN_DROP_3 102 //NO SOUND LOADED
 
 #if (RPU_MPU_ARCHITECTURE < 10) && !defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
 // This array maps the self-test modes to audio callouts
@@ -588,10 +589,16 @@ void ShowNitroBonusLamps()
         RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
     }
-    else
+    else if ((PlayerState[CurrentPlayer].sixLetterComplete == 2))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
+        RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
+    }
+    else if ((PlayerState[CurrentPlayer].sixLetterComplete >= 3))
+    {
+        RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
+        RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, 0);
     }
 }
@@ -2497,6 +2504,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
             {
                 BallState.laneBonus[BONUS_LANE_RIGHT]--;
                 CurrentScores[CurrentPlayer] += 1000;
+                PlaySoundEffect(SOUND_EFFECT_SCORE_TICK);
                 if (BallState.laneBonus[BONUS_LANE_RIGHT] == 0)
                 {
                     // If double bonus was lit and we've only scored bonus once, do it again for this side
@@ -2533,6 +2541,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
             {
                 BallState.laneBonus[BONUS_LANE_LEFT]--;
                 CurrentScores[CurrentPlayer] += 1000;
+                PlaySoundEffect(SOUND_EFFECT_SCORE_TICK);
                 if (BallState.laneBonus[BONUS_LANE_LEFT] == 0)
                 {
                     // If double bonus was lit and we've only scored bonus once, do it again for this side
@@ -2755,7 +2764,6 @@ int ManageGameMode()
             for (byte count = 0; count < 4; count++)
             {
                 RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, (((CurrentTime / 250) % 2) == 0 || CurrentPlayer != count) ? false : true);
-                //        RPU_SetLampState(LAMP_HEAD_1_PLAYER + count, ((count+1)==CurrentNumPlayers) ? true : false);
             }
         }
         else
@@ -2763,7 +2771,6 @@ int ManageGameMode()
             for (byte count = 0; count < 4; count++)
             {
                 RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, (CurrentPlayer == count) ? true : false);
-                //        RPU_SetLampState(LAMP_HEAD_1_PLAYER + count, ((count+1)==CurrentNumPlayers) ? true : false);
             }
         }
     }
@@ -3004,27 +3011,6 @@ int ShowMatchSequence(boolean curStateChanged)
 //  Switch Handling functions
 //
 ////////////////////////////////////////////////////////////////////////////
-/*
-// Example lock function
-
-void HandleLockSwitch(byte lockIndex) {
-
-  if (GameMode==GAME_MODE_UNSTRUCTURED_PLAY) {
-    // If this player has a lock available
-    if (PlayerLockStatus[CurrentPlayer] & (LOCK_1_AVAILABLE<<lockIndex)) {
-      // Lock the ball
-      LockBall(lockIndex);
-      SetGameMode(GAME_MODE_OFFER_LOCK);
-    } else {
-      if ((MachineLocks & (LOCK_1_ENGAGED<<lockIndex))==0) {
-        // Kick unlocked ball
-        RPU_PushToSolenoidStack(SOL_UPPER_BALL_EJECT, 12, true);
-      }
-    }
-  }
-}
-
-*/
 
 int HandleSystemSwitches(int curState, byte switchHit)
 {
@@ -3147,6 +3133,10 @@ void HandleDropTarget(byte switchHit)
         if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 2)
         {
             AwardExtraBall();
+        }
+        if (PlayerState[CurrentPlayer].dropTargetBanksCompleted >= 3)
+        {
+            AwardSpecial();
         }
     }
     else
