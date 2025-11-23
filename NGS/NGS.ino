@@ -2508,17 +2508,21 @@ boolean CountdownBonus(boolean isEndOfBall = false)
         {
             if (ScoreSuperBonusNextTick)
             {
-                PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEAL); //Temporary sound for super bonus
+                PlaySoundEffect(SOUND_EFFECT_FAN_CHEER); //Temporary sound for super bonus
                 BonusCountdownTickTime = 0;
                 ScoreSuperBonusNextTick = false;
 
-                if (PlayerState[CurrentPlayer].sixLetterComplete)
+                if (PlayerState[CurrentPlayer].sixLetterComplete == 1)
                 {
                     CurrentScores[CurrentPlayer] += 20000;
                 }
-                else
+                else if (PlayerState[CurrentPlayer].sixLetterComplete == 2)
                 {
                     CurrentScores[CurrentPlayer] += 30000;
+                }
+                else if (PlayerState[CurrentPlayer].sixLetterComplete == 3)
+                {
+                    AwardSpecial();
                 }
 
                 return true; //Super bonus is the last thing scored
