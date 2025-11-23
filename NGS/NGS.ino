@@ -98,11 +98,11 @@ boolean MachineStateChanged = true;
 
 #define SOUND_EFFECT_SWITCH_HIT 15
 #define SOUND_EFFECT_TEN_POINT 16
-#define SOUND_EFFECT_TIRE_SQUEL 17
+#define SOUND_EFFECT_TIRE_SQUEAL 17
 #define SOUND_EFFECT_FAN_CHEER 18 // :08
 #define SOUND_EFFECT_DRAGSTER_FULL_RUN 19 // LONG 1:20
 #define SOUND_EFFECT_DRAGSTER_FULL_RUN_ANNOUNCER 20 // LONG 1:20
-#define SOUND_EFFECT_TIRE_SQUEL_LONG 21 // Tire Squel longer than 17
+#define SOUND_EFFECT_TIRE_SQUEAL_LONG 21 // Tire Squel longer than 17
 
 #define SOUND_EFFECT_TILT_WARNING 28
 #define SOUND_EFFECT_MATCH_SPIN 30
@@ -277,6 +277,7 @@ BonusLanes BonusCountPhase = BONUS_LANE_RIGHT; //Original code count always does
 const unsigned long BonusCountdownDelayMs = 100;
 unsigned long BonusCountdownTickTime = 0;
 boolean CountBonusAgain = false; //Whether the next bonus lane should be counted again when done (double bonus)
+boolean ScoreSuperBonusNextTick = false;
 
 unsigned long CurrentScores[4];
 unsigned long BallFirstSwitchHitTime = 0;
@@ -2500,6 +2501,24 @@ boolean CountdownBonus(boolean isEndOfBall = false)
         // If it's time to tick down the bonus
         if (CurrentTime >= BonusCountdownTickTime)
         {
+            if (ScoreSuperBonusNextTick)
+            {
+                PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEAL); //Temporary sound for super bonus
+                BonusCountdownTickTime = 0;
+                ScoreSuperBonusNextTick = false;
+
+                if (PlayerState[CurrentPlayer].sixLetterComplete)
+                {
+                    CurrentScores[CurrentPlayer] += 20000;
+                }
+                else
+                {
+                    CurrentScores[CurrentPlayer] += 30000;
+                }
+
+                return true; //Super bonus is the last thing scored
+            }
+
             if (BonusCountPhase == BONUS_LANE_RIGHT)
             {
                 BallState.laneBonus[BONUS_LANE_RIGHT]--;
@@ -2525,9 +2544,17 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                             CountBonusAgain = BallState.doubleBonus;
                         }
                         else
-                        {
-                            doneCounting = true;
-                            BonusCountdownTickTime = 0;
+                        {   
+                            if (PlayerState[CurrentPlayer].sixLetterComplete > 0)
+                            {
+                                BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
+                                ScoreSuperBonusNextTick = true;
+                            }
+                            else
+                            {
+                                doneCounting = true;
+                                BonusCountdownTickTime = 0;
+                            }
                         }
                     } 
                 }
@@ -2553,8 +2580,16 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                     }
                     else
                     {
-                        doneCounting = true;
-                        BonusCountdownTickTime = 0;
+                        if (PlayerState[CurrentPlayer].sixLetterComplete > 0)
+                            {
+                                BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
+                                ScoreSuperBonusNextTick = true;
+                            }
+                            else
+                            {
+                                doneCounting = true;
+                                BonusCountdownTickTime = 0;
+                            }
                     } 
                 }
                 else
@@ -3189,7 +3224,7 @@ void HandleGamePlaySwitches(byte switchHit)
         } else {
           CurrentScores[CurrentPlayer] += 100;
         } 
-        PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEL);
+        PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEAL);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
