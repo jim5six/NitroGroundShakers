@@ -2311,6 +2311,11 @@ int InitGamePlay(boolean curStateChanged)
     NumberOfBallsInPlay = 0;
     //  NumberOfBallsLocked = CountBits(MachineLocks & LOCKS_ENGAGED_MASK);
     NumberOfBallsLocked = 0;
+
+    BonusIncreaseTickTime = 0;
+    BonusCountdownTickTime = 0;
+    ScoreSuperBonusNextTick = false;
+
     ShowPlayerScores(0xFF, false, false);
     
     return MACHINE_STATE_INIT_NEW_BALL;
@@ -2545,7 +2550,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                         }
                         else
                         {   
-                            if (PlayerState[CurrentPlayer].sixLetterComplete > 0)
+                            if (isEndOfBall && PlayerState[CurrentPlayer].sixLetterComplete > 0)
                             {
                                 BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
                                 ScoreSuperBonusNextTick = true;
@@ -2580,17 +2585,17 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                     }
                     else
                     {
-                        if (PlayerState[CurrentPlayer].sixLetterComplete > 0)
-                            {
-                                BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
-                                ScoreSuperBonusNextTick = true;
-                            }
-                            else
-                            {
-                                doneCounting = true;
-                                BonusCountdownTickTime = 0;
-                            }
-                    } 
+                        if (isEndOfBall && PlayerState[CurrentPlayer].sixLetterComplete > 0)
+                        {
+                            BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
+                            ScoreSuperBonusNextTick = true;
+                        }
+                        else
+                        {
+                            doneCounting = true;
+                            BonusCountdownTickTime = 0;
+                        }
+                    }
                 }
                 else
                 {
