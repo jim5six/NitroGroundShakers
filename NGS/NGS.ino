@@ -2534,7 +2534,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
             {
                 BallState.laneBonus[BONUS_LANE_RIGHT]--;
                 CurrentScores[CurrentPlayer] += 1000;
-                PlaySoundEffect(SOUND_EFFECT_SCORE_TICK);
+                PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEL_LONG);
                 if (BallState.laneBonus[BONUS_LANE_RIGHT] == 0)
                 {
                     // If double bonus was lit and we've only scored bonus once, do it again for this side
@@ -2579,7 +2579,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
             {
                 BallState.laneBonus[BONUS_LANE_LEFT]--;
                 CurrentScores[CurrentPlayer] += 1000;
-                PlaySoundEffect(SOUND_EFFECT_SCORE_TICK);
+                PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEL_LONG);
                 if (BallState.laneBonus[BONUS_LANE_LEFT] == 0)
                 {
                     // If double bonus was lit and we've only scored bonus once, do it again for this side
