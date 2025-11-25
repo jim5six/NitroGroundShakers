@@ -11,6 +11,11 @@ const int MotorOutputPin = 8;
 unsigned long MotorStopTime = 0;
 ShakerIntensity CurrentIntensity;
 
+void InitShakerMotor()
+{
+    pinMode(MotorOutputPin, OUTPUT);
+}
+
 void ProcessShakerMotor(unsigned long CurrentTime)
 {
     int PWMWidth = 0;

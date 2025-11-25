@@ -26,6 +26,8 @@
 #include "RPU_config.h"
 #include "RPU.h"
 
+#include "ShakerMotor.h"
+
 #define DEBUG_MESSAGES  0
 
 #ifndef RPU_OS_HARDWARE_REV
@@ -3238,7 +3240,8 @@ unsigned long RPU_InitializeMPUArch1(unsigned long initOptions, byte creditReset
   }
   else
   {
-    pinMode(8, OUTPUT);
+    //Shaker only runs when on new code
+    InitShakerMotor();
   }
 
 #endif  
