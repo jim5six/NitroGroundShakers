@@ -268,20 +268,20 @@ boolean TimersPaused = true;
 boolean AllowResetAfterBallOne = true;
 
 //Variables for bonus countup
-boolean CollectAfterBonusAdd = false; //Whether bonus collect should be triggered after adding bonus
+boolean CollectAfterBonusAdd = false;               //Whether bonus collect should be triggered after adding bonus
 unsigned long BonusIncreaseTickTime = 0;
 const unsigned long BonusTickDelayMs = 300;
 byte BonusToTick = 0;
 
 //Variables for bonus countdown
 byte BonusOnCountdownStart[BONUS_LANE_COUNT] = {0};
-BonusLanes BonusCountPhase = BONUS_LANE_RIGHT; //Original code count always does right side first
+BonusLanes BonusCountPhase = BONUS_LANE_RIGHT;      //Original code count always does right side first
 const unsigned long BonusCountdownDelayMs = 100;
 const unsigned long SuperBonusCountDelayMs = 500;
-unsigned long BonusCountdownTickTime = 0;
-boolean CountBonusAgain = false; //Whether the next bonus lane should be counted again when done (double bonus)
-byte SuperBonusTicks = 0;
-byte SuperBonusTargetTicks = 0;
+unsigned long BonusCountdownTickTime = 0;           //When the next bonus score tick should happen
+boolean CountBonusAgain = false;                    //Whether the next bonus lane should be counted again when done (double bonus)
+byte SuperBonusTicks = 0;                           //How many super bonus ticks (score additions) have happened so far
+byte SuperBonusTargetTicks = 0;                     //How many ticks will happen before super bonus count is done
 
 unsigned long CurrentScores[4];
 unsigned long BallFirstSwitchHitTime = 0;
@@ -582,6 +582,13 @@ void ShowLeftSaucerLamps()
 
 void ShowNitroBonusLamps()
 {
+    byte flashPeriod = 0;
+
+    if (BonusIsCounting() && SuperBonusTargetTicks > 0)
+    {
+        flashPeriod = SuperBonusCountDelayMs / 2;
+    }
+
     if ((PlayerState[CurrentPlayer].sixLetterComplete == 0))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
@@ -590,21 +597,21 @@ void ShowNitroBonusLamps()
     }
     else if ((PlayerState[CurrentPlayer].sixLetterComplete == 1))
     {
-        RPU_SetLampState(LAMP_SUPER_BONUS, 1, 0, 0);
+        RPU_SetLampState(LAMP_SUPER_BONUS, 1, 0, flashPeriod);
         RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
     }
     else if ((PlayerState[CurrentPlayer].sixLetterComplete == 2))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
-        RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
+        RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, flashPeriod);
         RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
     }
     else if ((PlayerState[CurrentPlayer].sixLetterComplete >= 3))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
-        RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, 0);
+        RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, flashPeriod);
     }
 }
 
@@ -2544,7 +2551,7 @@ boolean CountdownSuperBonus()
     else
     {
         done = true;
-        SuperBonusTargetTicks = 0; //Doing this stops the super bonus count
+        SuperBonusTargetTicks = 0;
         BonusCountdownTickTime = 0;
     }
 
@@ -2558,6 +2565,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
     if (isEndOfBall)
     {
         ShowBonusLamps();
+        ShowNitroBonusLamps();
     }
 
     if (BonusIsCounting())
