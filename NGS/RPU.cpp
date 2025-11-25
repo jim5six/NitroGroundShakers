@@ -3236,6 +3236,10 @@ unsigned long RPU_InitializeMPUArch1(unsigned long initOptions, byte creditReset
     if (!(initOptions&RPU_CMD_INIT_AND_RETURN_EVEN_IF_ORIGINAL_CHOSEN)) while (1);
     else return retResult;    
   }
+  else
+  {
+    pinMode(8, OUTPUT);
+  }
 
 #endif  
 

@@ -16,6 +16,8 @@
 #include "LampAnimations.h"
 #include <EEPROM.h>
 
+#include "ShakerMotor.h"
+
 #define GAME_MAJOR_VERSION 2025
 #define GAME_MINOR_VERSION 1
 #define DEBUG_MESSAGES 1
@@ -2520,7 +2522,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                 {
                     CurrentScores[CurrentPlayer] += 30000;
                 }
-                else if (PlayerState[CurrentPlayer].sixLetterComplete == 3)
+                else if (PlayerState[CurrentPlayer].sixLetterComplete >= 3)
                 {
                     AwardSpecial();
                 }
@@ -3353,6 +3355,7 @@ void HandleGamePlaySwitches(byte switchHit)
         BallState.spinnerLit = true;
         RPU_SetLampState(LAMP_POP_BUMPER, 1, 0, 0);
         AddToBonusLanesDelayed(3);
+        RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
         switch (BallState.topArrowState)
         {
         case LEFT_ARROW_LIT:
@@ -3612,6 +3615,8 @@ void loop()
     {
         MachineStateChanged = false;
     }
+
+    ProcessShakerMotor(CurrentTime);
 
     RPU_Update(CurrentTime);
     Audio.Update(CurrentTime);
