@@ -16,6 +16,8 @@
 #include "LampAnimations.h"
 #include <EEPROM.h>
 
+#include "ShakerMotor.h"
+
 #define GAME_MAJOR_VERSION 2025
 #define GAME_MINOR_VERSION 1
 #define DEBUG_MESSAGES 1
@@ -98,11 +100,11 @@ boolean MachineStateChanged = true;
 
 #define SOUND_EFFECT_SWITCH_HIT 15
 #define SOUND_EFFECT_TEN_POINT 16
-#define SOUND_EFFECT_TIRE_SQUEL 17
+#define SOUND_EFFECT_TIRE_SQUEAL 17
 #define SOUND_EFFECT_FAN_CHEER 18 // :08
 #define SOUND_EFFECT_DRAGSTER_FULL_RUN 19 // LONG 1:20
 #define SOUND_EFFECT_DRAGSTER_FULL_RUN_ANNOUNCER 20 // LONG 1:20
-#define SOUND_EFFECT_TIRE_SQUEL_LONG 21 // Tire Squel longer than 17
+#define SOUND_EFFECT_TIRE_SQUEAL_LONG 21 // Tire Squel longer than 17
 
 #define SOUND_EFFECT_TILT_WARNING 28
 #define SOUND_EFFECT_MATCH_SPIN 30
@@ -277,6 +279,7 @@ BonusLanes BonusCountPhase = BONUS_LANE_RIGHT; //Original code count always does
 const unsigned long BonusCountdownDelayMs = 100;
 unsigned long BonusCountdownTickTime = 0;
 boolean CountBonusAgain = false; //Whether the next bonus lane should be counted again when done (double bonus)
+boolean ScoreSuperBonusNextTick = false;
 
 unsigned long CurrentScores[4];
 unsigned long BallFirstSwitchHitTime = 0;
@@ -2310,6 +2313,11 @@ int InitGamePlay(boolean curStateChanged)
     NumberOfBallsInPlay = 0;
     //  NumberOfBallsLocked = CountBits(MachineLocks & LOCKS_ENGAGED_MASK);
     NumberOfBallsLocked = 0;
+
+    BonusIncreaseTickTime = 0;
+    BonusCountdownTickTime = 0;
+    ScoreSuperBonusNextTick = false;
+
     ShowPlayerScores(0xFF, false, false);
     
     return MACHINE_STATE_INIT_NEW_BALL;
@@ -2500,6 +2508,28 @@ boolean CountdownBonus(boolean isEndOfBall = false)
         // If it's time to tick down the bonus
         if (CurrentTime >= BonusCountdownTickTime)
         {
+            if (ScoreSuperBonusNextTick)
+            {
+                PlaySoundEffect(SOUND_EFFECT_FAN_CHEER); //Temporary sound for super bonus
+                BonusCountdownTickTime = 0;
+                ScoreSuperBonusNextTick = false;
+
+                if (PlayerState[CurrentPlayer].sixLetterComplete == 1)
+                {
+                    CurrentScores[CurrentPlayer] += 20000;
+                }
+                else if (PlayerState[CurrentPlayer].sixLetterComplete == 2)
+                {
+                    CurrentScores[CurrentPlayer] += 30000;
+                }
+                else if (PlayerState[CurrentPlayer].sixLetterComplete >= 3)
+                {
+                    AwardSpecial();
+                }
+
+                return true; //Super bonus is the last thing scored
+            }
+
             if (BonusCountPhase == BONUS_LANE_RIGHT)
             {
                 BallState.laneBonus[BONUS_LANE_RIGHT]--;
@@ -2525,9 +2555,17 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                             CountBonusAgain = BallState.doubleBonus;
                         }
                         else
-                        {
-                            doneCounting = true;
-                            BonusCountdownTickTime = 0;
+                        {   
+                            if (isEndOfBall && PlayerState[CurrentPlayer].sixLetterComplete > 0)
+                            {
+                                BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
+                                ScoreSuperBonusNextTick = true;
+                            }
+                            else
+                            {
+                                doneCounting = true;
+                                BonusCountdownTickTime = 0;
+                            }
                         }
                     } 
                 }
@@ -2553,9 +2591,17 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                     }
                     else
                     {
-                        doneCounting = true;
-                        BonusCountdownTickTime = 0;
-                    } 
+                        if (isEndOfBall && PlayerState[CurrentPlayer].sixLetterComplete > 0)
+                        {
+                            BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
+                            ScoreSuperBonusNextTick = true;
+                        }
+                        else
+                        {
+                            doneCounting = true;
+                            BonusCountdownTickTime = 0;
+                        }
+                    }
                 }
                 else
                 {
@@ -3104,6 +3150,7 @@ void CheckForCompleteABCDEF()
         !PlayerState[CurrentPlayer].letterLit[LETTER_F])
     {
         PlayerState[CurrentPlayer].sixLetterComplete += 1;
+        RunShakerMotor(CurrentTime, SHAKER_HIGH, 1000);
 
         for (int i = 0; i < LETTER_COUNT; i++)
         {
@@ -3124,6 +3171,7 @@ void HandleDropTarget(byte switchHit)
     if (cleared)
     {
         PlaySoundEffect(SOUND_EFFECT_FAN_CHEER);
+        RunShakerMotor(CurrentTime, SHAKER_HIGH, 2000);
         DropTargets.ResetDropTargets(CurrentTime + 1000, true);
         PlayerState[CurrentPlayer].dropTargetBanksCompleted += 1;
         if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 1)
@@ -3189,7 +3237,7 @@ void HandleGamePlaySwitches(byte switchHit)
         } else {
           CurrentScores[CurrentPlayer] += 100;
         } 
-        PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEL);
+        PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEAL);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3309,6 +3357,7 @@ void HandleGamePlaySwitches(byte switchHit)
         BallState.spinnerLit = true;
         RPU_SetLampState(LAMP_POP_BUMPER, 1, 0, 0);
         AddToBonusLanesDelayed(3);
+        RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
         switch (BallState.topArrowState)
         {
         case LEFT_ARROW_LIT:
@@ -3339,6 +3388,7 @@ void HandleGamePlaySwitches(byte switchHit)
         CurrentScores[CurrentPlayer] += 1000;
         PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
         AddToBonusLanesDelayed(3);
+        RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
 
         if (BallState.collectLit[BONUS_LANE_LEFT] || BallState.collectLit[BONUS_LANE_RIGHT])
         {
@@ -3568,6 +3618,8 @@ void loop()
     {
         MachineStateChanged = false;
     }
+
+    ProcessShakerMotor(CurrentTime);
 
     RPU_Update(CurrentTime);
     Audio.Update(CurrentTime);

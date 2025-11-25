@@ -26,6 +26,8 @@
 #include "RPU_config.h"
 #include "RPU.h"
 
+#include "ShakerMotor.h"
+
 #define DEBUG_MESSAGES  0
 
 #ifndef RPU_OS_HARDWARE_REV
@@ -3170,6 +3172,27 @@ unsigned long RPU_InitializeMPUArch1(unsigned long initOptions, byte creditReset
         (!switchStateClosed && (initOptions&RPU_CMD_BOOT_ORIGINAL_IF_NOT_SWITCH_CLOSED)) ||
         (creditResetButtonHit && (initOptions&RPU_CMD_BOOT_ORIGINAL_IF_CREDIT_RESET)) ||
         (!creditResetButtonHit && (initOptions&RPU_CMD_BOOT_ORIGINAL_IF_NOT_CREDIT_RESET)) ) {
+
+    if (initOptions & RPU_CMD_BOOT_ORIGINAL) 
+    {
+      Serial.write("Booting to original: forced by Software\n");
+    }
+    else if ((switchStateClosed && (initOptions&RPU_CMD_BOOT_ORIGINAL_IF_SWITCH_CLOSED)) )
+    {
+      Serial.write("Booting to original: Switch was closed and RPU_CMD_BOOT_ORIGINAL_IF_SWITCH_CLOSED\n");
+    }
+    else if (!switchStateClosed && (initOptions&RPU_CMD_BOOT_ORIGINAL_IF_NOT_SWITCH_CLOSED)) 
+    {
+      Serial.write("Booting to original: Switch was open and RPU_CMD_BOOT_ORIGINAL_IF_NOT_SWITCH_CLOSED\n");
+    }
+    else if (creditResetButtonHit && (initOptions&RPU_CMD_BOOT_ORIGINAL_IF_CREDIT_RESET)) 
+    {
+      Serial.write("Booting to original: Credit reset hit and RPU_CMD_BOOT_ORIGINAL_IF_CREDIT_RESET\n");
+    }
+    else
+    {
+      Serial.write("Booting to original: Credit reset NOT hit and RPU_CMD_BOOT_ORIGINAL_IF_NOT_CREDIT_RESET\n");
+    }
     bootToOriginal = true;
   }
 
@@ -3214,6 +3237,11 @@ unsigned long RPU_InitializeMPUArch1(unsigned long initOptions, byte creditReset
     retResult |= RPU_RET_ORIGINAL_CODE_REQUESTED;
     if (!(initOptions&RPU_CMD_INIT_AND_RETURN_EVEN_IF_ORIGINAL_CHOSEN)) while (1);
     else return retResult;    
+  }
+  else
+  {
+    //Shaker only runs when on new code
+    InitShakerMotor();
   }
 
 #endif  
