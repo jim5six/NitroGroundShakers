@@ -1,4 +1,7 @@
-// Function definitions for shaker motor drive functions
+/*
+* Function declarations for shaker motor drive functions
+* Created by Trevor Seyfried, 2025
+*/
 
 enum ShakerIntensity
 {
@@ -7,7 +10,7 @@ enum ShakerIntensity
     SHAKER_HIGH
 };
 
-//Setup the motor driver pin, must be called once on srartup
+//Setup the motor driver pin, must be called once on startup
 void InitShakerMotor();
 
 //Should be called once every loop. Checks to see if shaker motor should be driven.
