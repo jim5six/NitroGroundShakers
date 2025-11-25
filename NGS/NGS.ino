@@ -3150,6 +3150,7 @@ void CheckForCompleteABCDEF()
         !PlayerState[CurrentPlayer].letterLit[LETTER_F])
     {
         PlayerState[CurrentPlayer].sixLetterComplete += 1;
+        RunShakerMotor(CurrentTime, SHAKER_HIGH, 1000);
 
         for (int i = 0; i < LETTER_COUNT; i++)
         {
@@ -3170,6 +3171,7 @@ void HandleDropTarget(byte switchHit)
     if (cleared)
     {
         PlaySoundEffect(SOUND_EFFECT_FAN_CHEER);
+        RunShakerMotor(CurrentTime, SHAKER_HIGH, 2000);
         DropTargets.ResetDropTargets(CurrentTime + 1000, true);
         PlayerState[CurrentPlayer].dropTargetBanksCompleted += 1;
         if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 1)
@@ -3386,6 +3388,7 @@ void HandleGamePlaySwitches(byte switchHit)
         CurrentScores[CurrentPlayer] += 1000;
         PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
         AddToBonusLanesDelayed(3);
+        RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
 
         if (BallState.collectLit[BONUS_LANE_LEFT] || BallState.collectLit[BONUS_LANE_RIGHT])
         {
