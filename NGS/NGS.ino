@@ -104,7 +104,7 @@ boolean MachineStateChanged = true;
 #define SOUND_EFFECT_FAN_CHEER 18 // :08
 #define SOUND_EFFECT_DRAGSTER_FULL_RUN 19 // LONG 1:20
 #define SOUND_EFFECT_DRAGSTER_FULL_RUN_ANNOUNCER 20 // LONG 1:20
-#define SOUND_EFFECT_TIRE_SQUEAL_LONG 21 // Tire Squel longer than 17
+#define SOUND_EFFECT_TIRE_SQUEAL_LONG 21 // Tire Squeal longer than 17
 
 #define SOUND_EFFECT_TILT_WARNING 28
 #define SOUND_EFFECT_MATCH_SPIN 30
@@ -268,18 +268,20 @@ boolean TimersPaused = true;
 boolean AllowResetAfterBallOne = true;
 
 //Variables for bonus countup
-boolean CollectAfterBonusAdd = false; //Whether bonus collect should be triggered after adding bonus
+boolean CollectAfterBonusAdd = false;               //Whether bonus collect should be triggered after adding bonus
 unsigned long BonusIncreaseTickTime = 0;
 const unsigned long BonusTickDelayMs = 300;
 byte BonusToTick = 0;
 
 //Variables for bonus countdown
 byte BonusOnCountdownStart[BONUS_LANE_COUNT] = {0};
-BonusLanes BonusCountPhase = BONUS_LANE_RIGHT; //Original code count always does right side first
+BonusLanes BonusCountPhase = BONUS_LANE_RIGHT;      //Original code count always does right side first
 const unsigned long BonusCountdownDelayMs = 100;
-unsigned long BonusCountdownTickTime = 0;
-boolean CountBonusAgain = false; //Whether the next bonus lane should be counted again when done (double bonus)
-boolean ScoreSuperBonusNextTick = false;
+const unsigned long SuperBonusCountDelayMs = 1000;
+unsigned long BonusCountdownTickTime = 0;           //When the next bonus score tick should happen
+boolean CountBonusAgain = false;                    //Whether the next bonus lane should be counted again when done (double bonus)
+byte SuperBonusTicks = 0;                           //How many super bonus ticks (score additions) have happened so far
+byte SuperBonusTargetTicks = 0;                     //How many ticks will happen before super bonus count is done
 
 unsigned long CurrentScores[4];
 unsigned long BallFirstSwitchHitTime = 0;
@@ -580,6 +582,13 @@ void ShowLeftSaucerLamps()
 
 void ShowNitroBonusLamps()
 {
+    byte flashPeriod = 0;
+
+    if (BonusIsCounting() && SuperBonusTargetTicks > 0)
+    {
+        flashPeriod = SuperBonusCountDelayMs / 2;
+    }
+
     if ((PlayerState[CurrentPlayer].sixLetterComplete == 0))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
@@ -588,21 +597,21 @@ void ShowNitroBonusLamps()
     }
     else if ((PlayerState[CurrentPlayer].sixLetterComplete == 1))
     {
-        RPU_SetLampState(LAMP_SUPER_BONUS, 1, 0, 0);
+        RPU_SetLampState(LAMP_SUPER_BONUS, 1, 0, flashPeriod);
         RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
     }
     else if ((PlayerState[CurrentPlayer].sixLetterComplete == 2))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
-        RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, 0);
+        RPU_SetLampState(LAMP_NITRO_BONUS, 1, 0, flashPeriod);
         RPU_SetLampState(LAMP_CENTER_SPECIAL, 0, 0, 0);
     }
     else if ((PlayerState[CurrentPlayer].sixLetterComplete >= 3))
     {
         RPU_SetLampState(LAMP_SUPER_BONUS, 0, 0, 0);
         RPU_SetLampState(LAMP_NITRO_BONUS, 0, 0, 0);
-        RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, 0);
+        RPU_SetLampState(LAMP_CENTER_SPECIAL, 1, 0, flashPeriod);
     }
 }
 
@@ -2316,7 +2325,8 @@ int InitGamePlay(boolean curStateChanged)
 
     BonusIncreaseTickTime = 0;
     BonusCountdownTickTime = 0;
-    ScoreSuperBonusNextTick = false;
+    SuperBonusTicks = 0;
+    SuperBonusTargetTicks = 0;
 
     ShowPlayerScores(0xFF, false, false);
     
@@ -2494,6 +2504,60 @@ void RestoreBonus()
     BallState.laneBonus[BONUS_LANE_RIGHT] = BonusOnCountdownStart[BONUS_LANE_RIGHT];
 }
 
+void SetupSuperBonusScoring()
+{
+    if (PlayerState[CurrentPlayer].sixLetterComplete == 1)
+    {
+        SuperBonusTargetTicks = 2; //Count to 20k
+    }
+    else if (PlayerState[CurrentPlayer].sixLetterComplete == 2)
+    {
+        SuperBonusTargetTicks = 3; //Count to 30k
+    }
+    else if (PlayerState[CurrentPlayer].sixLetterComplete >= 3)
+    {
+        SuperBonusTargetTicks = 4; //Count to 30k then special
+    }
+
+    SuperBonusTicks = 0;
+    BonusCountdownTickTime = CurrentTime + SuperBonusCountDelayMs;
+}
+
+boolean CountdownSuperBonus()
+{
+    boolean done = false;
+
+    SuperBonusTicks++;
+
+    if (SuperBonusTicks == 1)
+    {
+        //First tick, play the sound
+        PlaySoundEffect(SOUND_EFFECT_FAN_CHEER); //Temporary sound for super bonus
+    }
+
+    if (SuperBonusTicks < 4)
+    {
+        CurrentScores[CurrentPlayer] += 1000;
+    }
+    else if (SuperBonusTicks == 4)
+    {
+        AwardSpecial();
+    }
+
+    if (SuperBonusTicks < SuperBonusTargetTicks)
+    {
+        BonusCountdownTickTime = CurrentTime + SuperBonusCountDelayMs;
+    }
+    else
+    {
+        done = true;
+        SuperBonusTargetTicks = 0;
+        BonusCountdownTickTime = 0;
+    }
+
+    return done;
+}
+
 boolean CountdownBonus(boolean isEndOfBall = false)
 {
     boolean doneCounting = false; 
@@ -2501,6 +2565,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
     if (isEndOfBall)
     {
         ShowBonusLamps();
+        ShowNitroBonusLamps();
     }
 
     if (BonusIsCounting())
@@ -2508,33 +2573,17 @@ boolean CountdownBonus(boolean isEndOfBall = false)
         // If it's time to tick down the bonus
         if (CurrentTime >= BonusCountdownTickTime)
         {
-            if (ScoreSuperBonusNextTick)
+            //Check to see if we're in the super bonus counting phase first. This happens after end of ball bonus count.
+            if (SuperBonusTargetTicks > 0)
             {
-                PlaySoundEffect(SOUND_EFFECT_FAN_CHEER); //Temporary sound for super bonus
-                BonusCountdownTickTime = 0;
-                ScoreSuperBonusNextTick = false;
-
-                if (PlayerState[CurrentPlayer].sixLetterComplete == 1)
-                {
-                    CurrentScores[CurrentPlayer] += 20000;
-                }
-                else if (PlayerState[CurrentPlayer].sixLetterComplete == 2)
-                {
-                    CurrentScores[CurrentPlayer] += 30000;
-                }
-                else if (PlayerState[CurrentPlayer].sixLetterComplete >= 3)
-                {
-                    AwardSpecial();
-                }
-
-                return true; //Super bonus is the last thing scored
+                return CountdownSuperBonus();
             }
 
             if (BonusCountPhase == BONUS_LANE_RIGHT)
             {
                 BallState.laneBonus[BONUS_LANE_RIGHT]--;
                 CurrentScores[CurrentPlayer] += 1000;
-                PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEL_LONG);
+                PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEAL_LONG);
                 if (BallState.laneBonus[BONUS_LANE_RIGHT] == 0)
                 {
                     // If double bonus was lit and we've only scored bonus once, do it again for this side
@@ -2558,8 +2607,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                         {   
                             if (isEndOfBall && PlayerState[CurrentPlayer].sixLetterComplete > 0)
                             {
-                                BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
-                                ScoreSuperBonusNextTick = true;
+                                SetupSuperBonusScoring();
                             }
                             else
                             {
@@ -2579,7 +2627,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
             {
                 BallState.laneBonus[BONUS_LANE_LEFT]--;
                 CurrentScores[CurrentPlayer] += 1000;
-                PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEL_LONG);
+                PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEAL_LONG);
                 if (BallState.laneBonus[BONUS_LANE_LEFT] == 0)
                 {
                     // If double bonus was lit and we've only scored bonus once, do it again for this side
@@ -2593,8 +2641,7 @@ boolean CountdownBonus(boolean isEndOfBall = false)
                     {
                         if (isEndOfBall && PlayerState[CurrentPlayer].sixLetterComplete > 0)
                         {
-                            BonusCountdownTickTime = CurrentTime + BonusCountdownDelayMs;
-                            ScoreSuperBonusNextTick = true;
+                            SetupSuperBonusScoring();
                         }
                         else
                         {
