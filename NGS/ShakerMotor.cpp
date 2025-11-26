@@ -1,3 +1,8 @@
+/*
+* Function definitions for shaker motor drive functions
+* Created by Trevor Seyfried, 2025
+*/
+
 #include "ShakerMotor.h"
 #include <Arduino.h>
 
