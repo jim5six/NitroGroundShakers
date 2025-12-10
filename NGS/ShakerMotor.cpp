@@ -12,6 +12,8 @@ const int PWM_width_med = 150;
 const int PWM_width_high = 175;
 
 const int MotorOutputPin = 8;
+const int LeftFlipperInputPin = 10;
+const int RightFlipperInputPin = 12;
 
 unsigned long MotorStopTime = 0;
 ShakerIntensity CurrentIntensity;
@@ -19,6 +21,8 @@ ShakerIntensity CurrentIntensity;
 void InitShakerMotor()
 {
     pinMode(MotorOutputPin, OUTPUT);
+    pinMode(LeftFlipperInputPin, INPUT_PULLUP);
+    pinMode(RightFlipperInputPin, INPUT_PULLUP);
 }
 
 void ProcessShakerMotor(unsigned long CurrentTime)
@@ -51,4 +55,14 @@ void RunShakerMotor(unsigned long currentTime, ShakerIntensity intensity, unsign
 {
     MotorStopTime = currentTime + durationMs;
     CurrentIntensity = intensity;
+}
+
+bool LeftFlipperButtonPressed()
+{
+    return (digitalRead(LeftFlipperInputPin) == LOW);
+}
+
+bool RightFlipperButtonPressed()
+{
+    return (digitalRead(RightFlipperInputPin) == LOW);
 }

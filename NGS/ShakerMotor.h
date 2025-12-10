@@ -18,3 +18,6 @@ void ProcessShakerMotor(unsigned long CurrentTime);
 
 //Start the shaker for a specific time and intensity.
 void RunShakerMotor(unsigned long CurrentTime, ShakerIntensity intensity, unsigned long durationMs);
+
+bool LeftFlipperButtonPressed();
+bool RightFlipperButtonPressed();
