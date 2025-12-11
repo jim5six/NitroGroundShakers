@@ -7,9 +7,9 @@
 #include <Arduino.h>
 
 // Scale of the PW from 0-255
-const int PWM_width_low = 100;
+const int PWM_width_low = 75;
 const int PWM_width_med = 150;
-const int PWM_width_high = 175;
+const int PWM_width_high = 220;
 
 const int MotorOutputPin = 8;
 const int LeftFlipperInputPin = 10;

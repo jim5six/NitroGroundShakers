@@ -2537,7 +2537,7 @@ boolean CountdownSuperBonus()
 
     if (SuperBonusTicks < 4)
     {
-        CurrentScores[CurrentPlayer] += 1000;
+        CurrentScores[CurrentPlayer] += 10000;
     }
     else if (SuperBonusTicks == 4)
     {
@@ -3249,7 +3249,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_LEFT_SLING:
     case SW_RIGHT_SLING:
         ToggleTopSaucerArrow();
-        CurrentScores[CurrentPlayer] += 100;
+        CurrentScores[CurrentPlayer] += 30;
         PlaySoundEffect(SOUND_EFFECT_SLING_SHOT);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3398,7 +3398,7 @@ void HandleGamePlaySwitches(byte switchHit)
         }
         else
         {
-            CurrentScores[CurrentPlayer] += 1000;
+            CurrentScores[CurrentPlayer] += 500;
         }
 
         BallState.spinnerLit = true;
@@ -3432,7 +3432,7 @@ void HandleGamePlaySwitches(byte switchHit)
         break;
 
     case SW_LEFT_SAUCER:
-        CurrentScores[CurrentPlayer] += 1000;
+        CurrentScores[CurrentPlayer] += 3000;
         PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
         AddToBonusLanesDelayed(3);
         RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
