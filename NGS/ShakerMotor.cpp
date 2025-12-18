@@ -11,10 +11,14 @@ const int PWM_width_low = 75;
 const int PWM_width_med = 150;
 const int PWM_width_high = 220;
 
+const int FlipperHoldCount = 10; //Consecutive readings required to register the flipper as pressed
+
 const int MotorOutputPin = 8;
 const int LeftFlipperInputPin = 10;
 const int RightFlipperInputPin = 12;
 
+int leftFlipperPressCount = 0;
+int rightFlipperPressCount = 0;
 unsigned long MotorStopTime = 0;
 ShakerIntensity CurrentIntensity;
 
@@ -60,9 +64,37 @@ void RunShakerMotor(unsigned long currentTime, ShakerIntensity intensity, unsign
 bool LeftFlipperButtonPressed()
 {
     return (digitalRead(LeftFlipperInputPin) == LOW);
+
+    /*
+    bool readHigh = (digitalRead(LeftFlipperInputPin) == HIGH);
+    if (readHigh) 
+    {
+        leftFlipperPressCount++;
+    }
+    else
+    {
+        leftFlipperPressCount = 0;
+    }
+
+    return (leftFlipperPressCount >= FlipperHoldCount);
+    */
 }
 
 bool RightFlipperButtonPressed()
 {
     return (digitalRead(RightFlipperInputPin) == LOW);
+
+    /*
+    bool readHigh = (digitalRead(LeftFlipperInputPin) == HIGH);
+    if (readHigh) 
+    {
+        rightFlipperPressCount++;
+    }
+    else
+    {
+        rightFlipperPressCount = 0;
+    }
+
+    return (rightFlipperPressCount >= FlipperHoldCount);
+    */
 }

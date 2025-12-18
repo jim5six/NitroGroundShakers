@@ -3468,6 +3468,14 @@ int RunGamePlayMode(int curState, boolean curStateChanged)
     int returnState = curState;
     unsigned long scoreAtTop = CurrentScores[CurrentPlayer];
 
+    if (BallFirstSwitchHitTime == 0)
+    {
+        if (LeftFlipperButtonPressed() || RightFlipperButtonPressed())
+        {
+            RunShakerMotor(CurrentTime, SHAKER_LOW, 2000);
+        }
+    }
+
     // Very first time into gameplay loop
     if (curState == MACHINE_STATE_INIT_GAMEPLAY)
     {
@@ -3668,11 +3676,11 @@ void loop()
 
     ProcessShakerMotor(CurrentTime);
 
-    if (!LeftFlipperButtonPressed())
+    if (LeftFlipperButtonPressed())
     {
         Serial.write("L press\n");
     }
-    if (!RightFlipperButtonPressed())
+    if (RightFlipperButtonPressed())
     {
         Serial.write("R press\n");
     }
