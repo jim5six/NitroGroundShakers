@@ -3472,7 +3472,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged)
     {
         if (LeftFlipperButtonPressed() || RightFlipperButtonPressed())
         {
-            RunShakerMotor(CurrentTime, SHAKER_LOW, 2000);
+            RunShakerMotor(CurrentTime, SHAKER_LOW, 500);
         }
     }
 
