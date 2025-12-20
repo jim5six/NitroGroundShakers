@@ -166,6 +166,7 @@ unsigned short SelfTestStateToCalloutMap[34] = {134, 135, 133, 136, 137, 138, 13
 
 #define MAX_DISPLAY_BONUS 29
 #define TILT_WARNING_DEBOUNCE_TIME 1000
+#define SAUCER_DEBOUNCE_TIME_MS 500 // How long saucers should ignore additional switch hits after the first hit
 
 /*********************************************************************
 
@@ -250,7 +251,6 @@ struct NGSPlayerState
     unsigned long dropTargetBanksCompleted;
 };
 
-// NGSGameState GameState;
 byte CurrentPlayer = 0;
 byte CurrentBallInPlay = 1;
 byte CurrentNumPlayers = 0;
@@ -289,6 +289,7 @@ unsigned long BallTimeInTrough = 0;
 unsigned long GameModeStartTime = 0;
 unsigned long GameModeEndTime = 0;
 unsigned long LastTiltWarningTime = 0;
+unsigned long SaucerDebounceTimeEnd = 0;
 unsigned long ScoreAdditionAnimation;
 unsigned long ScoreAdditionAnimationStartTime;
 unsigned long LastRemainingAnimatedScoreShown;
@@ -3392,62 +3393,74 @@ void HandleGamePlaySwitches(byte switchHit)
         break;
 
     case SW_CENTER_SAUCER:
-        if (BallState.collectLit[BONUS_LANE_LEFT] && BallState.collectLit[BONUS_LANE_RIGHT])
+        if (CurrentTime >= SaucerDebounceTimeEnd)
         {
-            CurrentScores[CurrentPlayer] += 5000;
+            SaucerDebounceTimeEnd = CurrentTime + SAUCER_DEBOUNCE_TIME_MS;
+
+            if (BallState.collectLit[BONUS_LANE_LEFT] && BallState.collectLit[BONUS_LANE_RIGHT])
+            {
+                CurrentScores[CurrentPlayer] += 5000;
+            }
+            else
+            {
+                CurrentScores[CurrentPlayer] += 500;
+            }
+
+            BallState.spinnerLit = true;
+            RPU_SetLampState(LAMP_POP_BUMPER, 1, 0, 0);
+            AddToBonusLanesDelayed(3);
+            RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
+            switch (BallState.topArrowState)
+            {
+            case LEFT_ARROW_LIT:
+                BallState.collectLit[BONUS_LANE_LEFT] = true;
+                break;
+
+            case RIGHT_ARROW_LIT:
+                BallState.collectLit[BONUS_LANE_RIGHT] = true;
+                break;
+
+            default:
+                break;
+            }
+
+            if (PlayerState[CurrentPlayer].doubleBonusLit)
+            {
+                BallState.doubleBonus = true;
+            }
+
+            PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
+            RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 3000, true);
+
+            LastSwitchHitTime = CurrentTime;
+            if (BallFirstSwitchHitTime == 0)
+                BallFirstSwitchHitTime = CurrentTime;
         }
-        else
-        {
-            CurrentScores[CurrentPlayer] += 500;
-        }
-
-        BallState.spinnerLit = true;
-        RPU_SetLampState(LAMP_POP_BUMPER, 1, 0, 0);
-        AddToBonusLanesDelayed(3);
-        RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
-        switch (BallState.topArrowState)
-        {
-        case LEFT_ARROW_LIT:
-            BallState.collectLit[BONUS_LANE_LEFT] = true;
-            break;
-
-        case RIGHT_ARROW_LIT:
-            BallState.collectLit[BONUS_LANE_RIGHT] = true;
-            break;
-
-        default:
-        break;
-        }
-
-        if (PlayerState[CurrentPlayer].doubleBonusLit)
-        {
-            BallState.doubleBonus = true;
-        }
-
-        PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
-        RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 3000, true);
-        LastSwitchHitTime = CurrentTime;
-        if (BallFirstSwitchHitTime == 0)
-            BallFirstSwitchHitTime = CurrentTime;
         break;
 
     case SW_LEFT_SAUCER:
-        CurrentScores[CurrentPlayer] += 3000;
-        PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
-        AddToBonusLanesDelayed(3);
-        RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
+        if (CurrentTime >= SaucerDebounceTimeEnd)
+        {
+            SaucerDebounceTimeEnd = CurrentTime + SAUCER_DEBOUNCE_TIME_MS;
 
-        if (BallState.collectLit[BONUS_LANE_LEFT] || BallState.collectLit[BONUS_LANE_RIGHT])
-        {
-            CollectAfterBonusAdd = true;
+            CurrentScores[CurrentPlayer] += 3000;
+            PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
+            AddToBonusLanesDelayed(3);
+            RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
+
+            if (BallState.collectLit[BONUS_LANE_LEFT] || BallState.collectLit[BONUS_LANE_RIGHT])
+            {
+                CollectAfterBonusAdd = true;
+            }
+            else
+            {
+                RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 3000, true);
+            }
+
+            LastSwitchHitTime = CurrentTime;
+            if (BallFirstSwitchHitTime == 0)
+                BallFirstSwitchHitTime = CurrentTime;
         }
-        else
-        {
-            RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 3000, true);
-        }
-        LastSwitchHitTime = CurrentTime;
-        if (BallFirstSwitchHitTime == 0)
-            BallFirstSwitchHitTime = CurrentTime;
         break;
 
     case SW_RUBBER:
