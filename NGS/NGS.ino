@@ -233,6 +233,8 @@ enum PlayfieldLetters
     LETTER_COUNT
 };
 
+// Values specific to NGS that reset between balls
+
 struct NGSBallState
 {
     byte laneBonus[BONUS_LANE_COUNT];
@@ -243,11 +245,12 @@ struct NGSBallState
     TopSaucerArrowState topArrowState;
 };
 
+// Values specific to NGS that reset between games
 struct NGSPlayerState
 {
     boolean letterLit[LETTER_COUNT];
     boolean doubleBonusLit;
-    byte sixLetterComplete;
+    unsigned long sixLetterComplete;
     unsigned long dropTargetBanksCompleted;
 };
 
@@ -255,7 +258,6 @@ byte CurrentPlayer = 0;
 byte CurrentBallInPlay = 1;
 byte CurrentNumPlayers = 0;
 byte Bonus[4];
-byte BonusX[4];
 byte GameMode = GAME_MODE_SKILL_SHOT;
 byte MaxTiltWarnings = 2;
 byte NumTiltWarnings = 0;
@@ -310,7 +312,6 @@ NGSPlayerState PlayerState[4];
 *********************************************************************/
 unsigned long PlayfieldMultiplierExpiration;
 unsigned long BonusChanged;
-unsigned long BonusXAnimationStart;
 
 DropTargetBank DropTargets(4, 1, DROP_TARGET_TYPE_BLY_1, 50);
 
@@ -2203,31 +2204,6 @@ boolean CheckForDelayedBonus()
     return justFinished;
 }
 
-void IncreaseBonusX()
-{
-    boolean soundPlayed = false;
-    if (BonusX[CurrentPlayer] < 10)
-    {
-        BonusX[CurrentPlayer] += 1;
-        BonusXAnimationStart = CurrentTime;
-
-        if (BonusX[CurrentPlayer] == 9)
-        {
-            BonusX[CurrentPlayer] = 10;
-            //      QueueNotification(SOUND_EFFECT_VP_BONUSX_MAX, 2);
-        }
-        else
-        {
-            //      QueueNotification(SOUND_EFFECT_VP_BONUS_X_INCREASED, 1);
-        }
-    }
-
-    if (!soundPlayed)
-    {
-        //    PlaySoundEffect(SOUND_EFFECT_BONUS_X_INCREASED);
-    }
-}
-
 unsigned long GameStartNotificationTime = 0;
 boolean WaitForBallToReachOuthole = false;
 unsigned long UpperBallEjectTime = 0;
@@ -2301,18 +2277,6 @@ int InitGamePlay(boolean curStateChanged)
     RPU_EnableSolenoidStack();
     RPU_SetCoinLockout((Credits >= MaximumCredits) ? true : false);
 
-    // Reset displays & game state variables
-    for (int count = 0; count < 4; count++)
-    {
-        // Initialize game-specific variables
-        BonusX[count] = 1;
-        for (int letter = 0; letter < LETTER_COUNT; letter++)
-        {
-            PlayerState[CurrentPlayer].letterLit[letter] = true;
-            PlayerState[CurrentPlayer].doubleBonusLit = true;
-            PlayerState[CurrentPlayer].sixLetterComplete = 0;
-        }
-    }
     memset(CurrentScores, 0, 4 * sizeof(unsigned long));
 
     SamePlayerShootsAgain = false;
@@ -2334,21 +2298,19 @@ int InitGamePlay(boolean curStateChanged)
     return MACHINE_STATE_INIT_NEW_BALL;
 }
 
+// Reset gamestate variables specific to NGS
 void ResetPlayerStates()
 {
-    for (int i = 0; i < 4; i++)
+    for (int player = 0; player < 4; player++)
     {
-        PlayerState[CurrentPlayer].letterLit[LETTER_A] = false;
-        PlayerState[CurrentPlayer].letterLit[LETTER_B] = false;
-        PlayerState[CurrentPlayer].letterLit[LETTER_C] = false;     
-        PlayerState[CurrentPlayer].letterLit[LETTER_D] = false;
-        PlayerState[CurrentPlayer].letterLit[LETTER_E] = false;
-        PlayerState[CurrentPlayer].letterLit[LETTER_F] = false;
+        for (int letter = 0; letter < LETTER_COUNT; letter++)
+        {
+            PlayerState[player].letterLit[letter] = true;
+        }
+        PlayerState[player].doubleBonusLit = false;
+        PlayerState[player].sixLetterComplete = 0;
+        PlayerState[player].dropTargetBanksCompleted = 0;
     }
-
-    PlayerState[CurrentPlayer].doubleBonusLit = false;
-    PlayerState[CurrentPlayer].sixLetterComplete = false;
-    PlayerState[CurrentPlayer].dropTargetBanksCompleted = 0;
 }
 
 // Reset all the bonuses and lights that should be new for each ball
@@ -2409,7 +2371,6 @@ int InitNewBall(bool curStateChanged)
         PlayfieldMultiplierExpiration = 0;
         ScoreAdditionAnimation = 0;
         ScoreAdditionAnimationStartTime = 0;
-        BonusXAnimationStart = 0;
         BallSaveEndTime = 0;
 
         ResetBallState();
