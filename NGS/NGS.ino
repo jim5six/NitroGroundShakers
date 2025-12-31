@@ -3180,7 +3180,7 @@ void HandleDropTarget(byte switchHit)
     if (cleared)
     {
         PlaySoundEffect(SOUND_EFFECT_FAN_CHEER);
-        RunShakerMotor(CurrentTime, SHAKER_HIGH, 2000);
+        RampShakerMotor(CurrentTime, SHAKER_HIGH, 5000);
         DropTargets.ResetDropTargets(CurrentTime + 1000, true);
         PlayerState[CurrentPlayer].dropTargetBanksCompleted += 1;
         if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 1)

@@ -70,13 +70,6 @@ void ProcessShakerMotor(unsigned long currentTime)
             if (PWMWidth < 0) PWMWidth = 0;
             if (PWMWidth > 255) PWMWidth = 255;
         }
-
-        // If ramp has finished, clear the ramp flag so ProcessShakerMotor can fall back.
-        if (currentTime >= MotorStopTime)
-        {
-            RampActive = false;
-            MotorStopTime = 0;
-        }
     }
     else
     {
@@ -106,6 +99,7 @@ void ProcessShakerMotor(unsigned long currentTime)
 
 void RunShakerMotor(unsigned long currentTime, ShakerIntensity intensity, unsigned long durationMs)
 {
+    RampActive = false;
     MotorStopTime = currentTime + durationMs;
     CurrentIntensity = intensity;
 }
