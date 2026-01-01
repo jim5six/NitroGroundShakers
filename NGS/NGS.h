@@ -124,6 +124,7 @@
 
 
 
+
 #if (RPU_MPU_ARCHITECTURE<10)
 // Machines with a -17, -35, 100, and 200 architecture
 // almost always have software based switch-triggered solenoids. 
