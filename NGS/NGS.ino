@@ -97,6 +97,7 @@ boolean MachineStateChanged = true;
 #define SOUND_EFFECT_BACKGROUND1 10
 #define SOUND_EFFECT_BACKGROUND2 11
 #define SOUND_EFFECT_BACKGROUND3 12
+#define SOUND_EFFECT_REV_5SEC 13
 
 #define SOUND_EFFECT_SWITCH_HIT 15
 #define SOUND_EFFECT_TEN_POINT 16
@@ -3179,7 +3180,7 @@ void HandleDropTarget(byte switchHit)
     boolean cleared = DropTargets.CheckIfBankCleared();
     if (cleared)
     {
-        PlaySoundEffect(SOUND_EFFECT_FAN_CHEER);
+        PlaySoundEffect(SOUND_EFFECT_REV_5SEC);
         RampShakerMotor(CurrentTime, SHAKER_HIGH, 5000);
         DropTargets.ResetDropTargets(CurrentTime + 1000, true);
         PlayerState[CurrentPlayer].dropTargetBanksCompleted += 1;
