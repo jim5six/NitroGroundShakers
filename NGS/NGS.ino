@@ -57,7 +57,8 @@ boolean MachineStateChanged = true;
 #define MACHINE_STATE_ADJUST_EXTRA_BALL_AWARD (MACHINE_STATE_TEST_DONE - 12)
 #define MACHINE_STATE_ADJUST_SPECIAL_AWARD (MACHINE_STATE_TEST_DONE - 13)
 #define MACHINE_STATE_ADJUST_CREDIT_RESET_HOLD_TIME (MACHINE_STATE_TEST_DONE - 14)
-#define MACHINE_STATE_ADJUST_DONE (MACHINE_STATE_TEST_DONE - 15)
+#define MACHINE_STATE_ADJUST_STALL_BALL (MACHINE_STATE_TEST_DONE - 15)
+#define MACHINE_STATE_ADJUST_DONE (MACHINE_STATE_TEST_DONE - 16)
 
 #define GAME_MODE_SKILL_SHOT 1
 #define GAME_MODE_UNSTRUCTURED_PLAY 2
@@ -83,6 +84,7 @@ boolean MachineStateChanged = true;
 #define EEPROM_CRB_HOLD_TIME 118
 #define EEPROM_EXTRA_BALL_SCORE_UL 140
 #define EEPROM_SPECIAL_SCORE_UL 144
+#define EEPROM_STALL_BALL_BYTE 148
 
 #define SOUND_EFFECT_NONE 0
 #define SOUND_EFFECT_BANG 1
@@ -119,7 +121,7 @@ boolean MachineStateChanged = true;
 #if (RPU_MPU_ARCHITECTURE < 10) && !defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
 // This array maps the self-test modes to audio callouts
 unsigned short SelfTestStateToCalloutMap[34] = {136, 137, 135, 134, 133, 140, 141, 142, 139, 143, 144, 145, 146, 147, 148, 149, 138, 150, 151, 152,
-                                                153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166};
+                                                153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 301}; //TODO: Update 301 to 167 when we make the new callout
 #elif (RPU_MPU_ARCHITECTURE < 10) && defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
 unsigned short SelfTestStateToCalloutMap[31] = {136, 137, 135, 134, 133, 140, 141, 142, 139, 143, 144, 145, 146, 147, 148, 149, 138,
                                                 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166};
@@ -303,6 +305,7 @@ unsigned long BallSaveEndTime;
 
 NGSBallState BallState;
 NGSPlayerState PlayerState[4];
+boolean StallBallEnabled = false;
 
 #define BALL_SAVE_GRACE_PERIOD 2000
 
@@ -393,6 +396,9 @@ void ReadStoredParameters()
     SpecialValue = RPU_ReadULFromEEProm(EEPROM_SPECIAL_SCORE_UL);
     if (SpecialValue % 1000 || SpecialValue > 100000)
         SpecialValue = 40000;
+
+    RPU_WriteByteToEEProm(EEPROM_STALL_BALL_BYTE, 0); // TODO: Remove this after we run it once
+    StallBallEnabled = ReadSetting(EEPROM_STALL_BALL_BYTE, 0) ? true : false;
 
     TimeRequiredToResetGame = ReadSetting(EEPROM_CRB_HOLD_TIME, 1);
     if (TimeRequiredToResetGame > 3 && TimeRequiredToResetGame != 99)
@@ -1583,6 +1589,10 @@ int RunSelfTest(int curState, boolean curStateChanged)
                 AdjustmentValues[4] = 99;
                 CurrentAdjustmentByte = &TimeRequiredToResetGame;
                 CurrentAdjustmentStorageByte = EEPROM_CRB_HOLD_TIME;
+                break;
+            case MACHINE_STATE_ADJUST_STALL_BALL:
+                CurrentAdjustmentByte = (byte *)&StallBallEnabled;
+                CurrentAdjustmentStorageByte = EEPROM_STALL_BALL_BYTE;
                 break;
             case MACHINE_STATE_ADJUST_DONE:
                 returnState = MACHINE_STATE_ATTRACT;
