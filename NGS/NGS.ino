@@ -120,7 +120,7 @@ boolean MachineStateChanged = true;
 
 #if (RPU_MPU_ARCHITECTURE < 10) && !defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
 // This array maps the self-test modes to audio callouts
-unsigned short SelfTestStateToCalloutMap[34] = {136, 137, 135, 134, 133, 140, 141, 142, 139, 143, 144, 145, 146, 147, 148, 149, 138, 150, 151, 152,
+unsigned short SelfTestStateToCalloutMap[35] = {136, 137, 135, 134, 133, 140, 141, 142, 139, 143, 144, 145, 146, 147, 148, 149, 138, 150, 151, 152,
                                                 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 301}; //TODO: Update 301 to 167 when we make the new callout
 #elif (RPU_MPU_ARCHITECTURE < 10) && defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
 unsigned short SelfTestStateToCalloutMap[31] = {136, 137, 135, 134, 133, 140, 141, 142, 139, 143, 144, 145, 146, 147, 148, 149, 138,
@@ -305,6 +305,7 @@ unsigned long BallSaveEndTime;
 
 NGSBallState BallState;
 NGSPlayerState PlayerState[4];
+boolean RandomSeeded = false;
 boolean StallBallEnabled = false;
 
 #define BALL_SAVE_GRACE_PERIOD 2000
@@ -1308,10 +1309,17 @@ boolean AwardExtraBall()
     }
     else
     {
-        SamePlayerShootsAgain = true;
-        RPU_SetLampState(LAMP_SHOOT_AGAIN, SamePlayerShootsAgain);
-        RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, SamePlayerShootsAgain);
-        QueueNotification(SOUND_EFFECT_EXTRA_BALL, 10);
+        if(StallBallEnabled)
+        {
+            QueueNotification(SOUND_EFFECT_EXTRA_BALL, 10);
+        }
+        else
+        {
+            SamePlayerShootsAgain = true;
+            RPU_SetLampState(LAMP_SHOOT_AGAIN, SamePlayerShootsAgain);
+            RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, SamePlayerShootsAgain);
+            QueueNotification(SOUND_EFFECT_EXTRA_BALL, 10);
+        }
     }
     return true;
 }
@@ -2081,6 +2089,10 @@ int RunAttractMode(int curState, boolean curStateChanged)
     {
         if (switchHit == SW_CREDIT_RESET)
         {
+            if (RandomSeeded == false) {
+                RandomSeeded = true;
+                randomSeed(CurrentTime); // Time of first credit press is random enough, use that as the seed
+            }
             if (AddPlayer(true))
                 returnState = MACHINE_STATE_INIT_GAMEPLAY;
         }
@@ -2309,6 +2321,24 @@ int InitGamePlay(boolean curStateChanged)
     return MACHINE_STATE_INIT_NEW_BALL;
 }
 
+void PlayRandomStallBallBackgroundSong() {
+    if (MusicVolume == 0) return;
+    long rand = random(5);
+    //PlayBackgroundSong(SOUND_EFFECT_STALLBALL_BG1 + rand);
+}
+
+void PlayRandomStallBallSuccessSound() {
+    if (MusicVolume == 0) return;
+    long rand = random(9);
+    //QueueNotification(SOUND_EFFECT_GOOD1 + rand, 9);
+}
+
+void PlayRandomStallBallFailureSound() {
+    if (MusicVolume == 0) return;
+    long rand = random(11);
+    //QueueNotification(SOUND_EFFECT_OUT1 + rand, 9);
+}
+
 // Reset gamestate variables specific to NGS
 void ResetPlayerStates()
 {
@@ -2397,7 +2427,14 @@ int InitNewBall(bool curStateChanged)
         RPU_PushToTimedSolenoidStack(SOL_OUTHOLE, 16, CurrentTime + 1000);
         NumberOfBallsInPlay = 1;
 
-        PlayBackgroundSong(SOUND_EFFECT_BACKGROUND3);
+        if (!StallBallEnabled)
+        {
+            PlayBackgroundSong(SOUND_EFFECT_BACKGROUND3);
+        }
+        else
+        {
+            PlayBackgroundSong(SOUND_EFFECT_BACKGROUND3); //TODO: This is a placeholder. Replace with stall ball music
+        }
     }
 
     // We should only consider the ball initialized when
@@ -2652,8 +2689,15 @@ int ManageGameMode()
 
     boolean specialAnimationRunning = false;
 
-    ShowPlayfieldLamps();
-    UpdateDropTargets();
+    if (!StallBallEnabled)
+    {
+        ShowPlayfieldLamps();
+        UpdateDropTargets();
+    }
+    else
+    {
+        //ShowLampAnimation(8, 288, CurrentTime, 23, false, false); TODO: Make stall ball animation
+    }
     
     boolean finishedAddingBonus = CheckForDelayedBonus();
 
@@ -2859,12 +2903,23 @@ int ManageGameMode()
             if ((CurrentTime - BallTimeInTrough) > 750)
             {
 
-                if (BallFirstSwitchHitTime == 0 && NumTiltWarnings <= MaxTiltWarnings)
+                if ((BallFirstSwitchHitTime == 0 && NumTiltWarnings <= MaxTiltWarnings) || StallBallEnabled)
                 {
                     // Nothing hit yet, so return the ball to the player
                     RPU_PushToTimedSolenoidStack(SOL_OUTHOLE, 16, CurrentTime);
                     BallTimeInTrough = 0;
                     returnState = MACHINE_STATE_NORMAL_GAMEPLAY;
+
+                    if (StallBallEnabled) {
+                        PlayRandomStallBallFailureSound();
+                        
+                        // If we tilted out of stall ball play, turn stuff back on
+                        if (NumTiltWarnings > MaxTiltWarnings) {
+                            RPU_EnableSolenoidStack();
+                            RPU_SetDisableFlippers(false);
+                            RPU_SetLampState(LAMP_HEAD_TILT, 0);
+                        }
+                    }
                 }
                 else
                 {
@@ -3213,8 +3268,83 @@ void HandleDropTarget(byte switchHit)
     }
 }
 
+void HandleSwitchesStallBall(byte switchHit) {
+    switch (switchHit) {
+
+    case SW_LEFT_SLING:
+    case SW_RIGHT_SLING:
+        PlaySoundEffect(SOUND_EFFECT_SLING_SHOT);
+        break;
+    case SW_DROP_TARGET1:
+    case SW_DROP_TARGET2:
+    case SW_DROP_TARGET3:
+    case SW_DROP_TARGET4:
+        HandleDropTarget(switchHit);
+        break;
+
+    case SW_LEFT_POP:
+    case SW_RIGHT_POP:
+        PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
+        break;
+    case SW_BOTTOM_POP:
+        PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEAL);
+        break;
+    case SW_SPINNER:
+        PlaySoundEffect(SOUND_EFFECT_SPINNER);
+        break;
+    case SW_RIGHT_OUTLANE:
+        PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
+        break;
+    case SW_LEFT_OUTLANE:
+        PlaySoundEffect(SOUND_EFFECT_SWITCH_HIT);
+        break;
+    case SW_A_LANE:
+        PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        break;
+    case SW_B_LANE:
+        PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        break;
+    case SW_C_TARGET:
+        PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        break;
+    case SW_D_TARGET:
+        PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        break;
+    case SW_RIGHT_INLANE:
+        PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        break;
+    case SW_LEFT_INLANE:
+        PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        break;
+    case SW_TARGET_ADVANCE_LR_BONUS:
+        PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
+        break;
+    case SW_CENTER_SAUCER:
+    case SW_LEFT_SAUCER:
+        if (CurrentTime >= SaucerDebounceTimeEnd)
+        {
+            SaucerDebounceTimeEnd = CurrentTime + SAUCER_DEBOUNCE_TIME_MS;
+            RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
+            RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 3000, true);
+            PlayRandomStallBallSuccessSound();
+        }
+        break;
+
+    case SW_RUBBER:
+        PlaySoundEffect(SOUND_EFFECT_TEN_POINT);
+        break;
+    }
+
+    LastSwitchHitTime = CurrentTime;
+    if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
+}
+
 void HandleGamePlaySwitches(byte switchHit)
 {
+    if (StallBallEnabled) {
+        HandleSwitchesStallBall(switchHit);
+        return;
+    }
 
     switch (switchHit)
     {
@@ -3527,7 +3657,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged)
 
     if (CreditResetPressStarted)
     {
-        if (CurrentBallInPlay < 2)
+        if (CurrentBallInPlay < 2 && !StallBallEnabled)
         {
             // If we haven't finished the first ball, we can add players
             AddPlayer();
