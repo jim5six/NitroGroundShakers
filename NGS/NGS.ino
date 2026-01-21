@@ -405,7 +405,7 @@ void ReadStoredParameters()
     if (SpecialValue % 1000 || SpecialValue > 100000)
         SpecialValue = 40000;
 
-    RPU_WriteByteToEEProm(EEPROM_STALL_BALL_BYTE, 0); // TODO: Remove this after we run it once
+    //RPU_WriteByteToEEProm(EEPROM_STALL_BALL_BYTE, 0); // TODO: Remove this after we run it once
     StallBallEnabled = ReadSetting(EEPROM_STALL_BALL_BYTE, 0) ? true : false;
 
     TimeRequiredToResetGame = ReadSetting(EEPROM_CRB_HOLD_TIME, 1);
