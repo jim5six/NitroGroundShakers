@@ -1,0 +1,630 @@
+{
+  "lampDefs": "#define LAMP_BONUS_R1                 0\t// Q14, J1-18\n#define LAMP_BONUS_R2                 1\t// Q29, J1-1\n#define LAMP_BONUS_R3                 2\t// Q36, J3-26\n#define LAMP_BONUS_R4                 3\t// Q57, J3-1\n#define LAMP_BONUS_R5                 4\t// Q12, J1-19\n#define LAMP_BONUS_R6                 5\t// Q27, J1-9\n#define LAMP_BONUS_R7                 6\t// Q38, J3-25\n#define LAMP_BONUS_R8                 7\t// Q50, J3-12\n#define LAMP_BONUS_R9                 8\t// Q13, J1-17\n#define LAMP_BONUS_R10                9\t// Q28, J1-8\n#define LAMP_BONUS_R20                10\t// Q44, J3-19\n#define LAMP_BONUS_SPINNER            11\t// Q51, J3-15\n#define LAMP_BONUS_L1                 12\t// Q8, J1-23\n#define LAMP_BONUS_L2                 13\t// Q35, J1-3\n#define LAMP_BONUS_L3                 14\t// Q49, J3-17\n#define LAMP_BONUS_L4                 15\t// Q54, J3-11\n#define LAMP_BONUS_L5                 16\t// Q9, J1-14\n#define LAMP_BONUS_L6                 17\t// Q34, J1-2\n#define LAMP_BONUS_L7                 18\t// Q48, J3-16\n#define LAMP_BONUS_L8                 19\t// Q55, J3-9\n#define LAMP_BONUS_L9                 20\t// Q10, J1-15\n#define LAMP_BONUS_L10                21\t// Q22, J1-10\n#define LAMP_BONUS_L20                22\t// Q37, J3-23\n#define LAMP_CENTER_SPECIAL           23\t// Q60, J3-3\n#define LAMP_A                        24\t// Q11, J1-16\n#define LAMP_B                        25\t// Q26, J1-7\n#define LAMP_C                        26\t// Q32, J3-27\n#define LAMP_D                        27\t// Q59, J3-4\n#define LAMP_E                        28\t// Q4, J1-28\n#define LAMP_F                        29\t// Q25, J1-6\n#define LAMP_EXTRABALL                30\t// Q20, J1-13\n#define LAMP_DROP_TARGET_SPECIAL      31\t// Q58, J3-2\n#define LAMP_DROP_TARGET_5000         32\t// Q1, J1-24\n#define LAMP_COLLECT_BONUS_LEFT       34\t// Q42, J3-21\n#define LAMP_COLLECT_BONUS_RIGHT      35\t// Q56, J3-10\n#define LAMP_TOP_ARROW_LEFT           36\t// Q2, J1-25\n#define LAMP_TOP_ARROW_CENTER         37\t// Q17, J1-11\n#define LAMP_TOP_ARROW_RIGHT          38\t// Q41, J3-20\n#define LAMP_DOUBLE_BONUS_TOP         39\t// Q46, J3-18\n#define LAMP_SHOOT_AGAIN              40\t// Q3, J2-21\n#define LAMP_HEAD_MATCH               41\t// Q23, J2-8\n#define LAMP_DOUBLE_BONUS_BOTTOM      42\t// Q40, J2-9\n#define LAMP_APRON_CREDIT             43\t// Q52, J2-5\n#define LAMP_SUPER_BONUS              44\t// Q7, J2-13\n#define LAMP_NITRO_BONUS              45\t// Q21, J2-12\n#define LAMP_ARROW_ADD_LR_BONUS       46\t// Q39, J2-4\n#define LAMP_POP_BUMPER               47\t// Q53, J2-3\n#define LAMP_HEAD_BIP                 48\t// Q16, J2-22\n#define LAMP_HEAD_HIGH_SCORE          49\t// Q15, J2-23\n#define LAMP_HEAD_GAME_OVER           50\t// Q33, J2-11\n#define LAMP_HEAD_TILT                51\t// Q47, J2-10\n#define LAMP_R_OUTLANE_SPECIAL        52\t// Q5, J2-16\n#define LAMP_L_OUTLANE_SPECIAL        53\t// Q18, J2-20\n",
+  "lamps": [
+    {
+      "id": 0,
+      "x": 399,
+      "y": 1207,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 1,
+      "x": 408,
+      "y": 1158,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 2,
+      "x": 418,
+      "y": 1109,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 3,
+      "x": 427,
+      "y": 1061,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 4,
+      "x": 437,
+      "y": 1012,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 5,
+      "x": 446,
+      "y": 964,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 6,
+      "x": 456,
+      "y": 914,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 7,
+      "x": 466,
+      "y": 865,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 8,
+      "x": 475,
+      "y": 817,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 9,
+      "x": 485,
+      "y": 768,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 10,
+      "x": 495,
+      "y": 714,
+      "color": "white",
+      "size": "large"
+    },
+    {
+      "id": 11,
+      "x": 631,
+      "y": 625,
+      "color": "white",
+      "size": "large"
+    },
+    {
+      "id": 12,
+      "x": 335,
+      "y": 1206,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 13,
+      "x": 326,
+      "y": 1157,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 14,
+      "x": 317,
+      "y": 1108,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 15,
+      "x": 307,
+      "y": 1060,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 16,
+      "x": 298,
+      "y": 1011,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 17,
+      "x": 288,
+      "y": 962,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 18,
+      "x": 279,
+      "y": 913,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 19,
+      "x": 270,
+      "y": 864,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 20,
+      "x": 260,
+      "y": 815,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 21,
+      "x": 251,
+      "y": 767,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 22,
+      "x": 240,
+      "y": 712,
+      "color": "white",
+      "size": "large"
+    },
+    {
+      "id": 23,
+      "x": 366,
+      "y": 771,
+      "color": "red",
+      "size": "large"
+    },
+    {
+      "id": 24,
+      "x": 236,
+      "y": 173,
+      "color": "yellow",
+      "size": "small"
+    },
+    {
+      "id": 25,
+      "x": 494,
+      "y": 174,
+      "color": "yellow",
+      "size": "small"
+    },
+    {
+      "id": 26,
+      "x": 179,
+      "y": 398,
+      "color": "yellow",
+      "size": "small"
+    },
+    {
+      "id": 27,
+      "x": 551,
+      "y": 401,
+      "color": "yellow",
+      "size": "small"
+    },
+    {
+      "id": 28,
+      "x": 104,
+      "y": 1083,
+      "color": "yellow",
+      "size": "small"
+    },
+    {
+      "id": 29,
+      "x": 628,
+      "y": 1083,
+      "color": "yellow",
+      "size": "small"
+    },
+    {
+      "id": 30,
+      "x": 581,
+      "y": 791,
+      "color": "red",
+      "size": "medium"
+    },
+    {
+      "id": 31,
+      "x": 576,
+      "y": 712,
+      "color": "yellow",
+      "size": "medium"
+    },
+    {
+      "id": 32,
+      "x": 588,
+      "y": 870,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 34,
+      "x": 138,
+      "y": 741,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 35,
+      "x": 97,
+      "y": 756,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 36,
+      "x": 313,
+      "y": 170,
+      "color": "white",
+      "size": "small"
+    },
+    {
+      "id": 37,
+      "x": 365,
+      "y": 169,
+      "color": "orange",
+      "size": "medium"
+    },
+    {
+      "id": 38,
+      "x": 417,
+      "y": 173,
+      "color": "white",
+      "size": "small"
+    },
+    {
+      "id": 39,
+      "x": 366,
+      "y": 374,
+      "color": "white",
+      "size": "large"
+    },
+    {
+      "id": 40,
+      "x": 182,
+      "y": 1028,
+      "color": "yellow",
+      "size": "large"
+    },
+    {
+      "id": 41,
+      "x": 0,
+      "y": 0,
+      "color": "white",
+      "size": "medium"
+    },
+    {
+      "id": 42,
+      "x": 368,
+      "y": 1269,
+      "color": "white",
+      "size": "large"
+    },
+    {
+      "id": 43,
+      "x": 139,
+      "y": 1465,
+      "color": "white",
+      "size": "small"
+    },
+    {
+      "id": 44,
+      "x": 367,
+      "y": 980,
+      "color": "white",
+      "size": "large"
+    },
+    {
+      "id": 45,
+      "x": 366,
+      "y": 886,
+      "color": "white",
+      "size": "large"
+    },
+    {
+      "id": 46,
+      "x": 62,
+      "y": 646,
+      "color": "white",
+      "size": "small"
+    },
+    {
+      "id": 47,
+      "x": 366,
+      "y": 633,
+      "color": "white",
+      "size": "xl"
+    },
+    {
+      "id": 48,
+      "x": 0,
+      "y": 0,
+      "color": "yellow",
+      "size": "medium"
+    },
+    {
+      "id": 49,
+      "x": 0,
+      "y": 0,
+      "color": "yellow",
+      "size": "medium"
+    },
+    {
+      "id": 50,
+      "x": 0,
+      "y": 0,
+      "color": "yellow",
+      "size": "medium"
+    },
+    {
+      "id": 51,
+      "x": 0,
+      "y": 0,
+      "color": "yellow",
+      "size": "medium"
+    },
+    {
+      "id": 52,
+      "x": 684,
+      "y": 1061,
+      "color": "red",
+      "size": "medium"
+    },
+    {
+      "id": 53,
+      "x": 48,
+      "y": 1062,
+      "color": "red",
+      "size": "medium"
+    }
+  ],
+  "config": {
+    "steps": "24",
+    "center": {
+      "x": 366,
+      "y": 770
+    }
+  },
+  "animations": [
+    {
+      "name": "Center Out 1",
+      "frames": [
+        [
+          0,
+          0,
+          128,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          128,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          128,
+          7,
+          248,
+          0,
+          0,
+          160,
+          0,
+          0
+        ],
+        [
+          192,
+          7,
+          124,
+          0,
+          0,
+          160,
+          0,
+          0
+        ],
+        [
+          224,
+          7,
+          126,
+          0,
+          0,
+          160,
+          0,
+          0
+        ],
+        [
+          224,
+          7,
+          126,
+          192,
+          4,
+          176,
+          0,
+          0
+        ],
+        [
+          240,
+          7,
+          127,
+          192,
+          13,
+          176,
+          0,
+          0
+        ],
+        [
+          120,
+          140,
+          7,
+          192,
+          13,
+          16,
+          0,
+          0
+        ],
+        [
+          56,
+          136,
+          3,
+          192,
+          13,
+          81,
+          0,
+          0
+        ],
+        [
+          60,
+          200,
+          3,
+          192,
+          13,
+          81,
+          0,
+          0
+        ],
+        [
+          30,
+          232,
+          1,
+          0,
+          137,
+          65,
+          0,
+          0
+        ],
+        [
+          14,
+          232,
+          0,
+          60,
+          136,
+          65,
+          48,
+          0
+        ],
+        [
+          7,
+          120,
+          0,
+          60,
+          128,
+          65,
+          48,
+          0
+        ],
+        [
+          7,
+          112,
+          0,
+          60,
+          128,
+          0,
+          48,
+          0
+        ],
+        [
+          3,
+          48,
+          0,
+          60,
+          128,
+          4,
+          48,
+          0
+        ],
+        [
+          1,
+          16,
+          0,
+          60,
+          128,
+          4,
+          48,
+          0
+        ],
+        [
+          1,
+          16,
+          0,
+          0,
+          0,
+          4,
+          48,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          3,
+          112,
+          4,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          3,
+          112,
+          4,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          3,
+          112,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          3,
+          112,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          3,
+          112,
+          8,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          8,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          8,
+          0,
+          0
+        ]
+      ]
+    }
+  ]
+}
