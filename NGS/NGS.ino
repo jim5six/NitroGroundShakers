@@ -217,6 +217,13 @@ enum TopSaucerArrowState
     RIGHT_ARROW_LIT
 };
 
+enum SpecialState
+{
+    SPECIAL_UNLIT,
+    SPECIAL_LIT_LEFT,
+    SPECIAL_LIT_RIGHT
+};
+
 enum BonusLanes
 {
     BONUS_LANE_LEFT,
@@ -244,7 +251,7 @@ struct NGSBallState
     boolean collectLit[BONUS_LANE_COUNT];
     boolean doubleBonus;
     boolean spinnerLit;
-    boolean specialLit;
+    SpecialState specialState;
     TopSaucerArrowState topArrowState;
 };
 
@@ -735,6 +742,26 @@ void ShowShootAgainLamps()
     }
 }
 
+void ShowSpecialLamps()
+{
+    if (BallState.specialState == SPECIAL_LIT_LEFT)
+    {
+        RPU_SetLampState(LAMP_R_OUTLANE_SPECIAL, 0, 0, 0);
+        RPU_SetLampState(LAMP_L_OUTLANE_SPECIAL, 1, 0, 0);
+    }
+    else if (BallState.specialState == SPECIAL_LIT_RIGHT)
+    {
+        RPU_SetLampState(LAMP_R_OUTLANE_SPECIAL, 1, 0, 0);
+        RPU_SetLampState(LAMP_L_OUTLANE_SPECIAL, 0, 0, 0);
+    }
+    else
+    {
+        //Special unlit
+        RPU_SetLampState(LAMP_R_OUTLANE_SPECIAL, 0, 0, 0);
+        RPU_SetLampState(LAMP_L_OUTLANE_SPECIAL, 0, 0, 0);
+    }
+}
+
 // Top level function for managing all normal lamps during unstructured play
 void ShowPlayfieldLamps()
 {
@@ -745,6 +772,7 @@ void ShowPlayfieldLamps()
     ShowShootAgainLamps();
     ShowDropTargetLamps();
     ShowABCDEFLamps();
+    ShowSpecialLamps();
 
     RPU_SetLampState(LAMP_DOUBLE_BONUS_BOTTOM, (BallState.doubleBonus ? 1 : 0), 0, 0);
     RPU_SetLampState(LAMP_BONUS_SPINNER, (BallState.spinnerLit ? 1 : 0), 0, 0);
@@ -2148,16 +2176,13 @@ byte CountBallsInTrough()
     return numBalls;
 }
 
-void AddToBonus(byte bonus)
+void CheckForSpecialLit()
 {
-    Bonus[CurrentPlayer] += bonus;
-    if (Bonus[CurrentPlayer] > MAX_DISPLAY_BONUS)
+    if (BallState.specialState == SPECIAL_UNLIT && 
+        BallState.laneBonus[BONUS_LANE_LEFT] >= 15 && 
+        BallState.laneBonus[BONUS_LANE_RIGHT] >= 15)
     {
-        Bonus[CurrentPlayer] = MAX_DISPLAY_BONUS;
-    }
-    else
-    {
-        BonusChanged = CurrentTime;
+        BallState.specialState = SPECIAL_LIT_LEFT; //special always starts on left
     }
 }
 
@@ -2198,6 +2223,8 @@ void AddToBonusLane(byte amount, BonusLanes whichLane)
             BallState.laneBonus[whichLane] = MAX_DISPLAY_BONUS;
         }
     }
+
+    CheckForSpecialLit();
 }
 
 void AddToBonusLanesDelayed(byte amount)
@@ -2363,7 +2390,7 @@ void ResetBallState()
     BallState.collectLit[BONUS_LANE_RIGHT] = 0;
     BallState.doubleBonus = false;
     BallState.spinnerLit = false;
-    BallState.specialLit = false;
+    BallState.specialState = SPECIAL_UNLIT;
     BallState.topArrowState = RIGHT_ARROW_LIT;
 
     BonusIncreaseTickTime = 0;
@@ -3215,6 +3242,19 @@ void ToggleTopSaucerArrow()
     PlayerState[CurrentPlayer].doubleBonusLit = !PlayerState[CurrentPlayer].doubleBonusLit;
 }
 
+void ToggleSpecialLane()
+{
+    if (BallState.specialState == SPECIAL_LIT_LEFT)
+    {
+        BallState.specialState = SPECIAL_LIT_RIGHT;
+    }
+    else if (BallState.specialState == SPECIAL_LIT_RIGHT)
+    {
+        BallState.specialState = SPECIAL_LIT_LEFT;
+    }
+    // else the special is unlit and do nothing
+}
+
 void CheckForCompleteABCDEF()
 {
     if (!PlayerState[CurrentPlayer].letterLit[LETTER_A] &&
@@ -3352,6 +3392,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_LEFT_SLING:
     case SW_RIGHT_SLING:
         ToggleTopSaucerArrow();
+        ToggleSpecialLane();
         CurrentScores[CurrentPlayer] += 30;
         PlaySoundEffect(SOUND_EFFECT_SLING_SHOT);
         LastSwitchHitTime = CurrentTime;
@@ -3373,6 +3414,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_LEFT_POP:
     case SW_RIGHT_POP:
         ToggleTopSaucerArrow();
+        ToggleSpecialLane();
         CurrentScores[CurrentPlayer] += 100;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         LastSwitchHitTime = CurrentTime;
@@ -3382,6 +3424,7 @@ void HandleGamePlaySwitches(byte switchHit)
 
     case SW_BOTTOM_POP:
         ToggleTopSaucerArrow();
+        ToggleSpecialLane();
         if (RPU_ReadLampState(LAMP_POP_BUMPER)){
           CurrentScores[CurrentPlayer] += 1000;  
         } else {
@@ -3395,6 +3438,7 @@ void HandleGamePlaySwitches(byte switchHit)
 
     case SW_SPINNER:
         ToggleTopSaucerArrow();
+        ToggleSpecialLane();
         if (BallState.spinnerLit)
         {
             CurrentScores[CurrentPlayer] += 1000;
@@ -3566,7 +3610,8 @@ void HandleGamePlaySwitches(byte switchHit)
         break;
 
     case SW_RUBBER:
-        ToggleTopSaucerArrow();    
+        ToggleTopSaucerArrow();
+        ToggleSpecialLane();
         CurrentScores[CurrentPlayer] += 30;
         PlaySoundEffect(SOUND_EFFECT_TEN_POINT);
         LastSwitchHitTime = CurrentTime;
