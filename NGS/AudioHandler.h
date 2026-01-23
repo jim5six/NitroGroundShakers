@@ -9,7 +9,7 @@
 #define AUDIO_PLAY_TYPE_ORIGINAL_SOUNDS   2
 #define AUDIO_PLAY_TYPE_WAV_TRIGGER       4
 
-#define NUMBER_OF_SONGS_REMEMBERED    10
+#define NUMBER_OF_SONGS_REMEMBERED    4 //TJS - changed this to 4 so we can't replay a song until 4 other songs have played
 
 #define VOICE_NOTIFICATION_STACK_SIZE   5
 #define VOICE_NOTIFICATION_STACK_EMPTY  0xFFFF

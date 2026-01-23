@@ -123,6 +123,19 @@ boolean MachineStateChanged = true;
 #define SOUND_EFFECT_SB_BG5 55 // 61sec
 #define SOUND_EFFECT_SB_BG6 56 // 282sec
 #define SOUND_EFFECT_SB_BG7 57 // 435sec
+#define BG_SONG_COUNT       8
+
+AudioSoundtrack SoundtrackList[BG_SONG_COUNT] = {
+    { SOUND_EFFECT_SB_BG0,  178 },
+    { SOUND_EFFECT_SB_BG1,  269 },
+    { SOUND_EFFECT_SB_BG2,  180 },
+    { SOUND_EFFECT_SB_BG3,  191 },
+    { SOUND_EFFECT_SB_BG4,  223 },
+    { SOUND_EFFECT_SB_BG5,   61 },
+    { SOUND_EFFECT_SB_BG6,  282 },
+    { SOUND_EFFECT_SB_BG7,  435 },
+};
+
 //Stallball
 #define SOUND_EFFECT_STALL 60
 #define SOUND_EFFECT_OUT 61
@@ -2364,23 +2377,19 @@ int InitGamePlay(boolean curStateChanged)
     return MACHINE_STATE_INIT_NEW_BALL;
 }
 
-void PlayRandomStallBallBackgroundSong() {
-    if (MusicVolume == 0) return;
-    long rand = random(8);
-    PlayBackgroundSong(SOUND_EFFECT_SB_BG0 + rand);
-    long rand = random(0, 8);
-    PlayBackgroundSong(SOUND_EFFECT_BG0 + rand);
+void PlayStallBallGackgroundMusic() {
+    PlayBackgroundSoundtrack(SoundtrackList, BG_SONG_COUNT, CurrentTime, true);
+    //long rand = random(0, 8);
+    //PlayBackgroundSong(SOUND_EFFECT_SB_BG0 + rand);
 }
 
 void PlayRandomStallBallSuccessSound() {
-    if (MusicVolume == 0) return;
     long rand = 0;
     //long rand = random(0, #); //eventually replace # with the number of unique callouts
     QueueNotification(SOUND_EFFECT_STALL + rand, 9);
 }
 
 void PlayRandomStallBallFailureSound() {
-    if (MusicVolume == 0) return;
     long rand = 0;
     //long rand = random(0, #);  //eventually replace # with the number of unique callouts
     QueueNotification(SOUND_EFFECT_OUT + rand, 9);
@@ -2480,8 +2489,7 @@ int InitNewBall(bool curStateChanged)
         }
         else
         {
-            PlayBackgroundSong(SOUND_EFFECT_SB_BG4);
-            //PlayBackgroundSoundtrack();
+            PlayStallBallGackgroundMusic();
         }
     }
 
