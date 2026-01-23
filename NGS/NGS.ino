@@ -115,14 +115,14 @@ boolean MachineStateChanged = true;
 #define SOUND_EFFECT_SCORE_TICK 8  //SPINNER SOUND
 
 //Stallball background songs
-#define SOUND_EFFECT_BG0 50
-#define SOUND_EFFECT_BG1 51
-#define SOUND_EFFECT_BG2 52
-#define SOUND_EFFECT_BG3 53
-#define SOUND_EFFECT_BG4 54
-#define SOUND_EFFECT_BG5 55
-#define SOUND_EFFECT_BG6 56
-#define SOUND_EFFECT_BG7 57
+#define SOUND_EFFECT_SB_BG0 50 // 178sec
+#define SOUND_EFFECT_SB_BG1 51 // 269sec
+#define SOUND_EFFECT_SB_BG2 52 // 180sec
+#define SOUND_EFFECT_SB_BG3 53 // 191sec
+#define SOUND_EFFECT_SB_BG4 54 // 223sec
+#define SOUND_EFFECT_SB_BG5 55 // 61sec
+#define SOUND_EFFECT_SB_BG6 56 // 282sec
+#define SOUND_EFFECT_SB_BG7 57 // 435sec
 //Stallball
 #define SOUND_EFFECT_STALL 60
 #define SOUND_EFFECT_OUT 61
@@ -134,7 +134,7 @@ boolean MachineStateChanged = true;
 #if (RPU_MPU_ARCHITECTURE < 10) && !defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
 // This array maps the self-test modes to audio callouts
 unsigned short SelfTestStateToCalloutMap[35] = {136, 137, 135, 134, 133, 140, 141, 142, 139, 143, 144, 145, 146, 147, 148, 149, 138, 150, 151, 152,
-                                                153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 301}; //TODO: Update 301 to 167 when we make the new callout
+                                                153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167};
 #elif (RPU_MPU_ARCHITECTURE < 10) && defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
 unsigned short SelfTestStateToCalloutMap[31] = {136, 137, 135, 134, 133, 140, 141, 142, 139, 143, 144, 145, 146, 147, 148, 149, 138,
                                                 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166};
@@ -1221,8 +1221,11 @@ boolean AddPlayer(boolean resetNumPlayers = false)
     }
     if (CurrentNumPlayers == 1) Audio.StopAllAudio();
     
-    QueueNotification(SOUND_EFFECT_WELCOME_RACE_FANS, 10);
-    
+    if (!StallBallEnabled)
+        {   
+        QueueNotification(SOUND_EFFECT_WELCOME_RACE_FANS, 10);
+        }
+
     RPU_WriteULToEEProm(RPU_TOTAL_PLAYS_EEPROM_START_BYTE, RPU_ReadULFromEEProm(RPU_TOTAL_PLAYS_EEPROM_START_BYTE) + 1);
 
     return true;
@@ -2363,8 +2366,8 @@ int InitGamePlay(boolean curStateChanged)
 
 void PlayRandomStallBallBackgroundSong() {
     if (MusicVolume == 0) return;
-    long rand = random(7);
-    PlayBackgroundSong(SOUND_EFFECT_BG0 + rand);
+    long rand = random(8);
+    PlayBackgroundSong(SOUND_EFFECT_SB_BG0 + rand);
 }
 
 void PlayRandomStallBallSuccessSound() {
@@ -2473,7 +2476,8 @@ int InitNewBall(bool curStateChanged)
         }
         else
         {
-            PlayRandomStallBallBackgroundSong(); //TODO: This is a placeholder. Replace with stall ball music
+            PlayBackgroundSong(SOUND_EFFECT_SB_BG4);
+            //PlayBackgroundSoundtrack();
         }
     }
 
