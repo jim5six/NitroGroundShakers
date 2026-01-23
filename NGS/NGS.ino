@@ -2377,7 +2377,7 @@ int InitGamePlay(boolean curStateChanged)
     return MACHINE_STATE_INIT_NEW_BALL;
 }
 
-void PlayStallBallGackgroundMusic() {
+void PlayStallBallBackgroundMusic() {
     Audio.PlayBackgroundSoundtrack(SoundtrackList, BG_SONG_COUNT, CurrentTime, true);
     //long rand = random(0, 8);
     //PlayBackgroundSong(SOUND_EFFECT_SB_BG0 + rand);
@@ -2489,7 +2489,7 @@ int InitNewBall(bool curStateChanged)
         }
         else
         {
-            PlayStallBallGackgroundMusic();
+            PlayStallBallBackgroundMusic();
         }
     }
 
@@ -2752,7 +2752,7 @@ int ManageGameMode()
     }
     else
     {
-        ShowLampAnimation(1, 96, CurrentTime, 23, false, false);
+        ShowLampAnimation(2, 96, CurrentTime, 23, false, false);
     }
     
     boolean finishedAddingBonus = CheckForDelayedBonus();
