@@ -2378,7 +2378,7 @@ int InitGamePlay(boolean curStateChanged)
 }
 
 void PlayStallBallGackgroundMusic() {
-    PlayBackgroundSoundtrack(SoundtrackList, BG_SONG_COUNT, CurrentTime, true);
+    Audio.PlayBackgroundSoundtrack(SoundtrackList, BG_SONG_COUNT, CurrentTime, true);
     //long rand = random(0, 8);
     //PlayBackgroundSong(SOUND_EFFECT_SB_BG0 + rand);
 }
