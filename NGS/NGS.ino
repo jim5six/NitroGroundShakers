@@ -2368,17 +2368,21 @@ void PlayRandomStallBallBackgroundSong() {
     if (MusicVolume == 0) return;
     long rand = random(8);
     PlayBackgroundSong(SOUND_EFFECT_SB_BG0 + rand);
+    long rand = random(0, 8);
+    PlayBackgroundSong(SOUND_EFFECT_BG0 + rand);
 }
 
 void PlayRandomStallBallSuccessSound() {
     if (MusicVolume == 0) return;
-    long rand = random(0);
+    long rand = 0;
+    //long rand = random(0, #); //eventually replace # with the number of unique callouts
     QueueNotification(SOUND_EFFECT_STALL + rand, 9);
 }
 
 void PlayRandomStallBallFailureSound() {
     if (MusicVolume == 0) return;
-    long rand = random(0);
+    long rand = 0;
+    //long rand = random(0, #);  //eventually replace # with the number of unique callouts
     QueueNotification(SOUND_EFFECT_OUT + rand, 9);
 }
 
