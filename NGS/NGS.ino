@@ -2752,7 +2752,7 @@ int ManageGameMode()
     }
     else
     {
-        ShowLampAnimation(2, 96, CurrentTime, 23, false, false);
+        ShowLampAnimation(3, 48, CurrentTime, 23, false, false);
     }
     
     boolean finishedAddingBonus = CheckForDelayedBonus();
