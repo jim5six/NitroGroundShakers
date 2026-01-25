@@ -3367,12 +3367,9 @@ void CheckForCompleteABCDEF()
 
 void HandleDropTarget(byte switchHit)
 {
-    byte result;
-    unsigned long numTargetsDown = 0;
-    result = DropTargets.HandleDropTargetHit(switchHit);
-    numTargetsDown = (unsigned long)CountBits(result);
-
+    DropTargets.HandleDropTargetHit(switchHit);
     boolean cleared = DropTargets.CheckIfBankCleared();
+    
     if (cleared)
     {
         PlaySoundEffect(SOUND_EFFECT_REV_5SEC);
