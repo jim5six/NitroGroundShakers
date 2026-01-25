@@ -341,7 +341,7 @@ NGSPlayerState PlayerState[4];
 boolean RandomSeeded = false;
 
 // Stall ball state variables
-#define STALL_BALL_SWITCHES_TO_DROP_RESET 50
+#define STALL_BALL_SWITCHES_TO_SPINNER_RESET 50
 #define STALL_BALL_SPINNERS_PER_FUEL 10
 #define BONUS_LAMP_COUNT 11 //Per side
 
@@ -2781,8 +2781,8 @@ void ManageStallBallGameMode()
     ShowBonusLampsStallBall();
     ShowDropTargetLampsStallBall();
 
-    CurrentScores[CurrentPlayer] = STALL_BALL_SWITCHES_TO_DROP_RESET - StallBallSwitchCount;
-    if (StallBallSwitchCount == STALL_BALL_SWITCHES_TO_DROP_RESET)
+    CurrentScores[CurrentPlayer] = STALL_BALL_SWITCHES_TO_SPINNER_RESET - StallBallSwitchCount;
+    if (StallBallSwitchCount == STALL_BALL_SWITCHES_TO_SPINNER_RESET)
     {
         StallBallSwitchCount = 0;
         StallBallSpinnerCount = 0;
@@ -3369,7 +3369,7 @@ void HandleDropTarget(byte switchHit)
 {
     DropTargets.HandleDropTargetHit(switchHit);
     boolean cleared = DropTargets.CheckIfBankCleared();
-    
+
     if (cleared)
     {
         PlaySoundEffect(SOUND_EFFECT_REV_5SEC);
