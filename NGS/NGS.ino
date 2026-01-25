@@ -339,7 +339,15 @@ unsigned long BallSaveEndTime;
 NGSBallState BallState;
 NGSPlayerState PlayerState[4];
 boolean RandomSeeded = false;
+
+// Stall ball state variables
+#define STALL_BALL_SWITCHES_TO_DROP_RESET 50
+#define STALL_BALL_SPINNERS_PER_FUEL 10
+#define BONUS_LAMP_COUNT 11 //Per side
+
 boolean StallBallEnabled = false;
+unsigned long StallBallSpinnerCount = 0;
+unsigned long StallBallSwitchCount = 0;
 
 #define BALL_SAVE_GRACE_PERIOD 2000
 
@@ -719,6 +727,26 @@ void ShowBonusLamps()
     }
 }
 
+void ShowBonusLampsStallBall()
+{
+    int totalLights = StallBallSpinnerCount / STALL_BALL_SPINNERS_PER_FUEL;
+    int flashPeriod = (totalLights == BONUS_LAMP_COUNT) ? 250 : 0; // flash when full
+
+    for (int i = 0; i < 11; i++)
+    {
+        if (i < (totalLights - 1))
+        {
+            RPU_SetLampState(LAMP_BONUS_L1 + i, 1, 0, flashPeriod);
+            RPU_SetLampState(LAMP_BONUS_R1 + i, 1, 0, flashPeriod);
+        }
+        else
+        {
+            RPU_SetLampState(LAMP_BONUS_L1 + i, 0, 0, 0);
+            RPU_SetLampState(LAMP_BONUS_L2 + i, 0, 0, 0);
+        }
+    }
+}
+
 void ShowABCDEFLamps()
 {
     RPU_SetLampState(LAMP_A, (PlayerState[CurrentPlayer].letterLit[LETTER_A] ? 1 : 0), 0, 0);
@@ -746,6 +774,23 @@ void ShowDropTargetLamps()
     if (PlayerState[CurrentPlayer].dropTargetBanksCompleted >= 2)
     {
         RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 1, 0, 0);
+        RPU_SetLampState(LAMP_EXTRABALL, 0, 0, 0);
+        RPU_SetLampState(LAMP_DROP_TARGET_5000, 0, 0, 0);
+    }
+}
+
+void ShowDropTargetLampsStallBall()
+{
+    // 22 total bonus lamps ("fuel"), if they are all it then flash the drop lights to indicate extra ball ready
+    if (StallBallSpinnerCount >= STALL_BALL_SPINNERS_PER_FUEL * BONUS_LAMP_COUNT)
+    {
+        RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 1, 0, 250);
+        RPU_SetLampState(LAMP_EXTRABALL, 1, 0, 250);
+        RPU_SetLampState(LAMP_DROP_TARGET_5000, 1, 0, 250);
+    }
+    else
+    {
+        RPU_SetLampState(LAMP_DROP_TARGET_SPECIAL, 0, 0, 0);
         RPU_SetLampState(LAMP_EXTRABALL, 0, 0, 0);
         RPU_SetLampState(LAMP_DROP_TARGET_5000, 0, 0, 0);
     }
@@ -2489,6 +2534,8 @@ int InitNewBall(bool curStateChanged)
         }
         else
         {
+            StallBallSpinnerCount = 0;
+            StallBallSwitchCount = 0;
             PlayStallBallBackgroundMusic();
         }
     }
@@ -2728,6 +2775,20 @@ boolean CountdownBonus(boolean isEndOfBall = false)
     return doneCounting;
 }
 
+void ManageStallBallGameMode()
+{
+    ShowLampAnimation(3, 48, CurrentTime, 23, false, false);
+    ShowBonusLampsStallBall();
+    ShowDropTargetLampsStallBall();
+
+    CurrentScores[CurrentPlayer] = STALL_BALL_SWITCHES_TO_DROP_RESET - StallBallSwitchCount;
+    if (StallBallSwitchCount == STALL_BALL_SWITCHES_TO_DROP_RESET)
+    {
+        StallBallSwitchCount = 0;
+        StallBallSpinnerCount = 0;
+    }
+}
+
 byte GameModeStage;
 boolean DisplaysNeedRefreshing = false;
 unsigned long LastTimePromptPlayed = 0;
@@ -2748,12 +2809,13 @@ int ManageGameMode()
     if (!StallBallEnabled)
     {
         ShowPlayfieldLamps();
-        UpdateDropTargets();
     }
     else
     {
-        ShowLampAnimation(3, 48, CurrentTime, 23, false, false);
+        ManageStallBallGameMode();
     }
+
+    UpdateDropTargets(); // Always update, even in stall ball, so targets reset
     
     boolean finishedAddingBonus = CheckForDelayedBonus();
 
@@ -3305,7 +3367,6 @@ void CheckForCompleteABCDEF()
 
 void HandleDropTarget(byte switchHit)
 {
-
     byte result;
     unsigned long numTargetsDown = 0;
     result = DropTargets.HandleDropTargetHit(switchHit);
@@ -3317,18 +3378,35 @@ void HandleDropTarget(byte switchHit)
         PlaySoundEffect(SOUND_EFFECT_REV_5SEC);
         RampShakerMotor(CurrentTime, SHAKER_HIGH, 5000);
         DropTargets.ResetDropTargets(CurrentTime + 1000, true);
-        PlayerState[CurrentPlayer].dropTargetBanksCompleted += 1;
-        if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 1)
+
+        if (!StallBallEnabled)
         {
-            CurrentScores[CurrentPlayer] += 5000;
+            PlayerState[CurrentPlayer].dropTargetBanksCompleted += 1;
+            if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 1)
+            {
+                CurrentScores[CurrentPlayer] += 5000;
+            }
+            if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 2)
+            {
+                AwardExtraBall();
+            }
+            if (PlayerState[CurrentPlayer].dropTargetBanksCompleted >= 3)
+            {
+                AwardSpecial();
+            }
         }
-        if (PlayerState[CurrentPlayer].dropTargetBanksCompleted == 2)
+        else
         {
-            AwardExtraBall();
-        }
-        if (PlayerState[CurrentPlayer].dropTargetBanksCompleted >= 3)
-        {
-            AwardSpecial();
+            //Stall ball is enabled, so use special extra ball rules
+            if (StallBallSpinnerCount >= STALL_BALL_SPINNERS_PER_FUEL * BONUS_LAMP_COUNT)
+            {
+                //Play a special sound?
+                QueueNotification(SOUND_EFFECT_EXTRA_BALL, 10);
+                //Play a light show?
+                //Shaker motor already ran
+                StallBallSpinnerCount = 0;
+                StallBallSwitchCount = 0;
+            }
         }
     }
     else
@@ -3342,55 +3420,70 @@ void HandleSwitchesStallBall(byte switchHit) {
 
     case SW_LEFT_SLING:
     case SW_RIGHT_SLING:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_DROP_TARGET1:
     case SW_DROP_TARGET2:
     case SW_DROP_TARGET3:
     case SW_DROP_TARGET4:
+        StallBallSwitchCount++;
         HandleDropTarget(switchHit);
         break;
 
     case SW_LEFT_POP:
     case SW_RIGHT_POP:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_BOTTOM_POP:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_SPINNER:
+        StallBallSpinnerCount++;
         PlaySoundEffect(SOUND_EFFECT_SPINNER);
         break;
     case SW_RIGHT_OUTLANE:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_LEFT_OUTLANE:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_A_LANE:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_B_LANE:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_C_TARGET:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_D_TARGET:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_RIGHT_INLANE:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_LEFT_INLANE:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_TARGET_ADVANCE_LR_BONUS:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     case SW_CENTER_SAUCER:
         if (CurrentTime >= SaucerDebounceTimeEnd)
         {
+            StallBallSwitchCount++;
             SaucerDebounceTimeEnd = CurrentTime + SAUCER_DEBOUNCE_TIME_MS;
             RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
             RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 3000, true);
@@ -3400,6 +3493,7 @@ void HandleSwitchesStallBall(byte switchHit) {
     case SW_LEFT_SAUCER:
         if (CurrentTime >= SaucerDebounceTimeEnd)
         {
+            StallBallSwitchCount++;
             SaucerDebounceTimeEnd = CurrentTime + SAUCER_DEBOUNCE_TIME_MS;
             RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
             RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 3000, true);
@@ -3408,6 +3502,7 @@ void HandleSwitchesStallBall(byte switchHit) {
         break;
 
     case SW_RUBBER:
+        StallBallSwitchCount++;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         break;
     }
