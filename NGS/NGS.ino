@@ -342,7 +342,7 @@ boolean RandomSeeded = false;
 
 // Stall ball state variables
 #define STALL_BALL_SWITCHES_TO_SPINNER_RESET 50
-#define STALL_BALL_SPINNERS_PER_FUEL 10
+#define STALL_BALL_SPINNERS_PER_FUEL 5
 #define BONUS_LAMP_COUNT 11 //Per side
 
 boolean StallBallEnabled = false;
@@ -742,7 +742,7 @@ void ShowBonusLampsStallBall()
         else
         {
             RPU_SetLampState(LAMP_BONUS_L1 + i, 0, 0, 0);
-            RPU_SetLampState(LAMP_BONUS_L2 + i, 0, 0, 0);
+            RPU_SetLampState(LAMP_BONUS_R1 + i, 0, 0, 0);
         }
     }
 }
@@ -2906,7 +2906,7 @@ int ManageGameMode()
         break;
     }
 
-    if (!specialAnimationRunning && NumTiltWarnings <= MaxTiltWarnings)
+    if (!specialAnimationRunning && NumTiltWarnings <= MaxTiltWarnings && !StallBallEnabled)
     {
         ShowDropTargetLamps();
         ShowShootAgainLamps();
