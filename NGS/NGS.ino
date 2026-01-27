@@ -341,7 +341,7 @@ NGSPlayerState PlayerState[4];
 boolean RandomSeeded = false;
 
 // Stall ball state variables
-#define STALL_BALL_SWITCHES_TO_SPINNER_RESET 50
+#define STALL_BALL_SWITCHES_TO_SPINNER_RESET 100
 #define STALL_BALL_SPINNERS_PER_FUEL 5
 #define BONUS_LAMP_COUNT 11 //Per side
 
