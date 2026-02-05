@@ -730,11 +730,11 @@ void ShowBonusLamps()
 void ShowBonusLampsStallBall()
 {
     int totalLights = StallBallSpinnerCount / STALL_BALL_SPINNERS_PER_FUEL;
-    int flashPeriod = (totalLights == BONUS_LAMP_COUNT) ? 250 : 0; // flash when full
+    int flashPeriod = (totalLights >= BONUS_LAMP_COUNT) ? 0 : 250; // flash when filling
 
     for (int i = 0; i < 11; i++)
     {
-        if (i < (totalLights - 1))
+        if (i < totalLights)
         {
             RPU_SetLampState(LAMP_BONUS_L1 + i, 1, 0, flashPeriod);
             RPU_SetLampState(LAMP_BONUS_R1 + i, 1, 0, flashPeriod);
