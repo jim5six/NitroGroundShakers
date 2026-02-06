@@ -123,7 +123,11 @@ boolean MachineStateChanged = true;
 #define SOUND_EFFECT_SB_BG5 55 // 61sec
 #define SOUND_EFFECT_SB_BG6 56 // 282sec
 #define SOUND_EFFECT_SB_BG7 57 // 435sec
-#define BG_SONG_COUNT       8
+#define SOUND_EFFECT_SB_BG8 58 // 298sec
+#define SOUND_EFFECT_SB_BG9 59 // 222sec
+#define SOUND_EFFECT_SB_BG10 60 // 270sec
+#define SOUND_EFFECT_SB_BG11 61 // 289sec
+#define BG_SONG_COUNT       12
 
 AudioSoundtrack SoundtrackList[BG_SONG_COUNT] = {
     { SOUND_EFFECT_SB_BG0,  178 },
@@ -134,11 +138,15 @@ AudioSoundtrack SoundtrackList[BG_SONG_COUNT] = {
     { SOUND_EFFECT_SB_BG5,   61 },
     { SOUND_EFFECT_SB_BG6,  282 },
     { SOUND_EFFECT_SB_BG7,  435 },
+    { SOUND_EFFECT_SB_BG8,  298 },
+    { SOUND_EFFECT_SB_BG9,  222 },
+    { SOUND_EFFECT_SB_BG10,  270 },
+    { SOUND_EFFECT_SB_BG11,  289 },
 };
 
 //Stallball
-#define SOUND_EFFECT_STALL 60
-#define SOUND_EFFECT_OUT 61
+#define SOUND_EFFECT_STALL 70
+#define SOUND_EFFECT_OUT 71
 
 #define SOUND_EFFECT_COIN_DROP_1 100 //NO SOUND LOADED
 #define SOUND_EFFECT_COIN_DROP_2 101 //NO SOUND LOADED
