@@ -120,10 +120,10 @@ void RampShakerMotor(unsigned long currentTime, ShakerIntensity peakIntensity, u
 
 bool LeftFlipperButtonPressed()
 {
-    return (digitalRead(LeftFlipperInputPin) == LOW);
+    return (digitalRead(LeftFlipperInputPin) == HIGH);
 }
 
 bool RightFlipperButtonPressed()
 {
-    return (digitalRead(RightFlipperInputPin) == LOW);
+    return (digitalRead(RightFlipperInputPin) == HIGH);
 }
