@@ -3973,15 +3973,6 @@ void loop()
 
     ProcessShakerMotor(CurrentTime);
 
-    if (LeftFlipperButtonPressed())
-    {
-        Serial.write("L press\n");
-    }
-    if (RightFlipperButtonPressed())
-    {
-        Serial.write("R press\n");
-    }
-
     RPU_Update(CurrentTime);
     Audio.Update(CurrentTime);
 
