@@ -3738,7 +3738,7 @@ void HandleGamePlaySwitches(byte switchHit)
             }
 
             PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
-            RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 3000, true);
+            RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 5000, true);
 
             LastSwitchHitTime = CurrentTime;
             if (BallFirstSwitchHitTime == 0)
@@ -3763,7 +3763,7 @@ void HandleGamePlaySwitches(byte switchHit)
             }
             else
             {
-                RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 3000, true);
+                RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 5000, true);
             }
 
             LastSwitchHitTime = CurrentTime;
