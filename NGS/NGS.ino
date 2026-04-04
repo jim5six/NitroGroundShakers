@@ -3493,7 +3493,7 @@ void HandleSwitchesStallBall(byte switchHit) {
             SaucerDebounceTimeEnd = CurrentTime + SAUCER_DEBOUNCE_TIME_MS;
             RampShakerMotor(CurrentTime, SHAKER_HIGH, 5000);
             //RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
-            RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 3000, true);
+            RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 5000, true);
             PlayRandomStallBallSuccessSound();
         }
         break;
@@ -3504,7 +3504,7 @@ void HandleSwitchesStallBall(byte switchHit) {
             SaucerDebounceTimeEnd = CurrentTime + SAUCER_DEBOUNCE_TIME_MS;
             RampShakerMotor(CurrentTime, SHAKER_HIGH, 5000);
         //RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
-            RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 3000, true);
+            RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 5000, true);
             PlayRandomStallBallSuccessSound();
         }
         break;
@@ -3535,7 +3535,7 @@ void HandleGamePlaySwitches(byte switchHit)
         ToggleSpecialLane();
         CurrentScores[CurrentPlayer] += 30;
         PlaySoundEffect(SOUND_EFFECT_SLING_SHOT);
-        RunShakerMotor(CurrentTime, SHAKER_MED, 1000);
+        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3615,7 +3615,9 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_A_LANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        if (RPU_ReadLampState(LAMP_A)){ 
+            RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        }
         AddToBonusLane(1, BONUS_LANE_LEFT);
         PlayerState[CurrentPlayer].letterLit[LETTER_A] = false;
         LastSwitchHitTime = CurrentTime;
@@ -3626,7 +3628,9 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_B_LANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        if (RPU_ReadLampState(LAMP_B)){ 
+            RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        }
         AddToBonusLane(1, BONUS_LANE_RIGHT);
         PlayerState[CurrentPlayer].letterLit[LETTER_B] = false;
         LastSwitchHitTime = CurrentTime;
@@ -3637,7 +3641,9 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_C_TARGET:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        if (RPU_ReadLampState(LAMP_C)){ 
+            RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        }
         AddToBonusLane(1, BONUS_LANE_LEFT);
         PlayerState[CurrentPlayer].letterLit[LETTER_C] = false;
         LastSwitchHitTime = CurrentTime;
@@ -3648,7 +3654,9 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_D_TARGET:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
-        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        if (RPU_ReadLampState(LAMP_D)){ 
+            RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        }
         AddToBonusLane(1, BONUS_LANE_RIGHT);
         PlayerState[CurrentPlayer].letterLit[LETTER_D] = false;
         LastSwitchHitTime = CurrentTime;
@@ -3660,7 +3668,9 @@ void HandleGamePlaySwitches(byte switchHit)
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
         PlayerState[CurrentPlayer].letterLit[LETTER_F] = false;
-        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        if (RPU_ReadLampState(LAMP_F)){ 
+            RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        }
         AddToBonusLane(1, BONUS_LANE_RIGHT);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3671,7 +3681,9 @@ void HandleGamePlaySwitches(byte switchHit)
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
         PlayerState[CurrentPlayer].letterLit[LETTER_E] = false;
-        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        if (RPU_ReadLampState(LAMP_E)){ 
+            RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
+        }
         AddToBonusLane(1, BONUS_LANE_LEFT);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3784,7 +3796,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged)
         if (LeftFlipperButtonPressed() || RightFlipperButtonPressed())
         {
             RunShakerMotor(CurrentTime, SHAKER_LOW, 500);
-            PlaySoundEffect(SOUND_EFFECT_ENGINE_REV);
+            PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
         }
     }
 
