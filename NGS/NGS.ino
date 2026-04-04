@@ -3364,7 +3364,8 @@ void CheckForCompleteABCDEF()
         !PlayerState[CurrentPlayer].letterLit[LETTER_F])
     {
         PlayerState[CurrentPlayer].sixLetterComplete += 1;
-        RunShakerMotor(CurrentTime, SHAKER_HIGH, 1000);
+        RampShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
+        //RunShakerMotor(CurrentTime, SHAKER_HIGH, 1000);
 
         for (int i = 0; i < LETTER_COUNT; i++)
         {
@@ -3490,7 +3491,8 @@ void HandleSwitchesStallBall(byte switchHit) {
         {
             StallBallSwitchCount++;
             SaucerDebounceTimeEnd = CurrentTime + SAUCER_DEBOUNCE_TIME_MS;
-            RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
+            RampShakerMotor(CurrentTime, SHAKER_HIGH, 5000);
+            //RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
             RPU_PushToTimedSolenoidStack(SOL_CENTER_SAUCER, 16, CurrentTime + 3000, true);
             PlayRandomStallBallSuccessSound();
         }
@@ -3500,7 +3502,8 @@ void HandleSwitchesStallBall(byte switchHit) {
         {
             StallBallSwitchCount++;
             SaucerDebounceTimeEnd = CurrentTime + SAUCER_DEBOUNCE_TIME_MS;
-            RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
+            RampShakerMotor(CurrentTime, SHAKER_HIGH, 5000);
+        //RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
             RPU_PushToTimedSolenoidStack(SOL_LEFT_SAUCER, 16, CurrentTime + 3000, true);
             PlayRandomStallBallSuccessSound();
         }
@@ -3532,6 +3535,7 @@ void HandleGamePlaySwitches(byte switchHit)
         ToggleSpecialLane();
         CurrentScores[CurrentPlayer] += 30;
         PlaySoundEffect(SOUND_EFFECT_SLING_SHOT);
+        RunShakerMotor(CurrentTime, SHAKER_MED, 1000);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3554,6 +3558,7 @@ void HandleGamePlaySwitches(byte switchHit)
         ToggleSpecialLane();
         CurrentScores[CurrentPlayer] += 100;
         PlaySoundEffect(SOUND_EFFECT_QUICK_REV);
+        RunShakerMotor(CurrentTime, SHAKER_MED, 1000);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3568,6 +3573,7 @@ void HandleGamePlaySwitches(byte switchHit)
           CurrentScores[CurrentPlayer] += 100;
         } 
         PlaySoundEffect(SOUND_EFFECT_TIRE_SQUEAL);
+        RunShakerMotor(CurrentTime, SHAKER_MED, 1000);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
             BallFirstSwitchHitTime = CurrentTime;
@@ -3609,6 +3615,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_A_LANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
         AddToBonusLane(1, BONUS_LANE_LEFT);
         PlayerState[CurrentPlayer].letterLit[LETTER_A] = false;
         LastSwitchHitTime = CurrentTime;
@@ -3619,6 +3626,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_B_LANE:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
         AddToBonusLane(1, BONUS_LANE_RIGHT);
         PlayerState[CurrentPlayer].letterLit[LETTER_B] = false;
         LastSwitchHitTime = CurrentTime;
@@ -3629,6 +3637,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_C_TARGET:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
         AddToBonusLane(1, BONUS_LANE_LEFT);
         PlayerState[CurrentPlayer].letterLit[LETTER_C] = false;
         LastSwitchHitTime = CurrentTime;
@@ -3639,6 +3648,7 @@ void HandleGamePlaySwitches(byte switchHit)
     case SW_D_TARGET:
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
+        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
         AddToBonusLane(1, BONUS_LANE_RIGHT);
         PlayerState[CurrentPlayer].letterLit[LETTER_D] = false;
         LastSwitchHitTime = CurrentTime;
@@ -3650,6 +3660,7 @@ void HandleGamePlaySwitches(byte switchHit)
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
         PlayerState[CurrentPlayer].letterLit[LETTER_F] = false;
+        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
         AddToBonusLane(1, BONUS_LANE_RIGHT);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3660,6 +3671,7 @@ void HandleGamePlaySwitches(byte switchHit)
         CurrentScores[CurrentPlayer] += 500;
         PlaySoundEffect(SOUND_EFFECT_ROLL_OVER);
         PlayerState[CurrentPlayer].letterLit[LETTER_E] = false;
+        RunShakerMotor(CurrentTime, SHAKER_LOW, 1000);
         AddToBonusLane(1, BONUS_LANE_LEFT);
         LastSwitchHitTime = CurrentTime;
         if (BallFirstSwitchHitTime == 0)
@@ -3692,7 +3704,8 @@ void HandleGamePlaySwitches(byte switchHit)
             BallState.spinnerLit = true;
             RPU_SetLampState(LAMP_POP_BUMPER, 1, 0, 0);
             AddToBonusLanesDelayed(3);
-            RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
+            RampShakerMotor(CurrentTime, SHAKER_HIGH, 5000);
+            //RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
             switch (BallState.topArrowState)
             {
             case LEFT_ARROW_LIT:
@@ -3729,7 +3742,8 @@ void HandleGamePlaySwitches(byte switchHit)
             CurrentScores[CurrentPlayer] += 3000;
             PlaySoundEffect(SOUND_EFFECT_STARTING_LINE);
             AddToBonusLanesDelayed(3);
-            RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
+            RampShakerMotor(CurrentTime, SHAKER_HIGH, 5000);
+            //RunShakerMotor(CurrentTime, SHAKER_HIGH, 3000);
 
             if (BallState.collectLit[BONUS_LANE_LEFT] || BallState.collectLit[BONUS_LANE_RIGHT])
             {
@@ -3770,6 +3784,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged)
         if (LeftFlipperButtonPressed() || RightFlipperButtonPressed())
         {
             RunShakerMotor(CurrentTime, SHAKER_LOW, 500);
+            PlaySoundEffect(SOUND_EFFECT_ENGINE_REV);
         }
     }
 
